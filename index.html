@@ -53,10 +53,13 @@
 
         /* Комбо дисплей */
         #combo-display {
-            font-weight: 600;
+            font-weight: 700;
             text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
             letter-spacing: 1px;
             transition: opacity 0.5s;
+            color: #e67e22;
+            font-size: 1.1em;
+            opacity: 0;
         }
         
         /* Стили для панели счета */
@@ -88,7 +91,7 @@
             display: grid;
             grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
-            border: 6px solid #ff9f43; /* Яркая рамка */
+            border: 6px solid #ff9f43; 
             border-radius: 8px; 
             background-color: #dfe6e9; 
             margin: 0 auto 25px auto;
@@ -111,9 +114,18 @@
         }
         
         /* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
-        .ai-highlight {
-            box-shadow: 0 0 8px 3px #00ff00 !important; /* Яркий зеленый свет */
-            border: 2px solid #00ff00 !important;
+        /* Используем разные цвета для разных фигур ИИ, чтобы они не сливались */
+        .ai-highlight-0 { /* Первая фигура */
+            box-shadow: 0 0 8px 3px #1dd1a1 !important; 
+            border: 2px solid #1dd1a1 !important;
+        }
+        .ai-highlight-1 { /* Вторая фигура */
+            box-shadow: 0 0 8px 3px #54a0ff !important; 
+            border: 2px solid #54a0ff !important;
+        }
+        .ai-highlight-2 { /* Третья фигура */
+            box-shadow: 0 0 8px 3px #ff9f43 !important; 
+            border: 2px solid #ff9f43 !important;
         }
         
         /* Радужная Анимация исчезновения */
@@ -165,9 +177,9 @@
         }
         
         /* Подсветка фигуры, когда она является целью ИИ */
-        .shape-container.ai-target {
-            box-shadow: 0 0 0 3px #1dd1a1;
-        }
+        .shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1; }
+        .shape-container.ai-target-1 { box-shadow: 0 0 0 3px #54a0ff; }
+        .shape-container.ai-target-2 { box-shadow: 0 0 0 3px #ff9f43; }
         
         .shape-container[draggable="true"]:hover {
              box-shadow: 0 0 0 2px #6c5ce7;
@@ -200,7 +212,7 @@
         }
         
         .game-button:hover {
-            background-position: right center; /* Анимация градиента */
+            background-position: right center; 
         }
         
         .game-button:active {
@@ -308,7 +320,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
-            background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%); /* Градиент */
+            background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%); 
             background-size: 200% auto;
             color: #333;
         }
@@ -369,7 +381,7 @@
         <div class="score-panel">
             Счет: <span id="score">0</span>
             <div id="mode-info">Обычный режим.</div>
-            <div id="combo-display" style="color: #e67e22; font-size: 1.1em; opacity: 0;"></div>
+            <div id="combo-display"></div>
         </div>
 
         <div id="game-board">
@@ -395,7 +407,7 @@
             
             <button class="mode-selection-button" data-mode="training">
                 **Тренировка с ИИ-подсказчиком** 🤖
-                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучшее место. Счет не учитывается.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучшее место для всех 3 фигур. Счет не учитывается.</span>
             </button>
         </div>
     </div>
@@ -431,9 +443,9 @@
         let currentShapes = []; 
         let draggedShapeIndex = -1; 
         let dragOffset = { row: 0, col: 0 }; 
-        let canClearNextShapes = false; 
-        let currentBestPlacement = null; 
-
+        let currentBestPlacements = []; // Для хранения лучших мест всех 3-х фигур
+        
+        // UI элементы
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
         const modeInfoElement = document.getElementById('mode-info');
@@ -449,7 +461,7 @@
         const closeButtons = document.querySelectorAll('.close-button');
         const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
         
-        // Определение фигур (Обновлено: Добавлены фигуры из Block Blast)
+        // Определение фигур
         const SHAPES = [
             // 1x1, 1x2, 2x1 (базовые)
             { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
@@ -509,13 +521,12 @@
             
             score = 0;
             comboCounter = 0;
-            canClearNextShapes = false; 
+            currentBestPlacements = []; 
             updateScore();
             updateModeInfo();
             updateComboDisplay(0);
             generateNextShapes();
             
-            // Настройка UI-обработчиков
             resetButton.onclick = () => initializeGame(gameMode);
             settingsButton.onclick = () => settingsModal.style.display = 'block';
             modeButton.onclick = () => showModeModal();
@@ -538,6 +549,8 @@
             }
         }
         
+        // ... (showModeModal, selectMode, toggleTheme, updateScore) - без изменений ...
+
         function showModeModal() {
             modeSelectionButtons.forEach(btn => {
                 btn.classList.remove('active');
@@ -586,13 +599,26 @@
         function updateComboDisplay(linesCleared = 0) {
             if (linesCleared > 0) {
                 comboCounter++;
-                canClearNextShapes = true; 
-            } 
+            } else if (comboCounter > 0) {
+                comboCounter = 0;
+            }
             
-            if (comboCounter > 1) {
-                comboDisplay.textContent = `COMBO x${comboCounter}!`;
+            let comboText = '';
+            
+            if (linesCleared >= 2) {
+                const lineMultiplier = Math.min(linesCleared, 5); // x2, x3, x4, x5
+                comboText = `x${lineMultiplier} Линии! `;
+            }
+            
+            if (comboCounter >= 2) {
+                 if (comboText) comboText += ' | ';
+                 comboText += `COMBO x${comboCounter}!`;
+            }
+
+            if (comboText) {
+                comboDisplay.textContent = comboText;
                 comboDisplay.style.opacity = '1';
-                setTimeout(() => { if (comboCounter > 0) comboDisplay.style.opacity = '0.9'; }, 500); 
+                setTimeout(() => { comboDisplay.style.opacity = '0.9'; }, 500); 
             } else {
                 comboDisplay.textContent = '';
                 comboDisplay.style.opacity = '0';
@@ -600,33 +626,23 @@
         }
 
         function generateNextShapes() {
-            if (currentShapes.length > 0 && currentShapes.every(shape => shape === null) && !canClearNextShapes && comboCounter > 0) {
-                 comboCounter = 0; 
-                 updateComboDisplay(0);
-            }
-            canClearNextShapes = false; 
-            
             currentShapes = [];
             nextBlocksElement.innerHTML = '';
             
-            // --- НОВАЯ ЛОГИКА ГЕНЕРАЦИИ (95% выигрыш / 5% проигрыш) ---
-            
             const randomChance = Math.random();
-            let safeShapes = [];
+            let shapesToGenerate = [];
             
             // 95% шанс получить набор, который можно поставить
             if (randomChance < 0.95) { 
-                // Генерируем набор и проверяем, можно ли его разместить
                 while (true) {
-                    safeShapes = [];
+                    shapesToGenerate = [];
                     for (let i = 0; i < 3; i++) {
                         const randomIndex = Math.floor(Math.random() * SHAPES.length);
-                        safeShapes.push(SHAPES[randomIndex]);
+                        shapesToGenerate.push(SHAPES[randomIndex]);
                     }
                     
-                    // Проверяем, может ли хотя бы одна фигура из набора быть размещена
-                    if (safeShapes.some(shape => shapeCanBePlaced(shape.pattern))) {
-                        currentShapes = safeShapes;
+                    if (shapesToGenerate.some(shape => shapeCanBePlaced(shape.pattern))) {
+                        currentShapes = shapesToGenerate;
                         break;
                     }
                 }
@@ -638,16 +654,20 @@
                 }
             }
             
-            // --- Отображение фигур ---
+            currentBestPlacements = [];
+            
             for (let i = 0; i < 3; i++) {
                 const shapeData = currentShapes[i];
                 const container = createShapeElement(shapeData, i);
                 nextBlocksElement.appendChild(container);
+                
+                // Рассчитываем и сохраняем лучший ход ИИ для каждой фигуры
+                currentBestPlacements.push(findBestPlacement(shapeData));
             }
             
-            // Если режим тренировки, сразу показать подсказку
+            // Если режим тренировки, сразу показать подсказки для всех 3-х фигур
             if (gameMode === TRAINING_MODE) {
-                showAIHighlightOnShape(0); // Подсвечиваем первую фигуру по умолчанию
+                showAllAIHighlights();
             }
         }
         
@@ -655,7 +675,6 @@
              const rows = pattern.length;
              const cols = pattern[0].length;
              
-             // Ищем первый активный блок в фигуре (для расчета смещения)
              let offsetR = 0;
              let offsetC = 0;
              outer:
@@ -671,7 +690,6 @@
 
              for (let r = 0; r < BOARD_SIZE; r++) {
                  for (let c = 0; c < BOARD_SIZE; c++) {
-                     // Проверяем каждую клетку как потенциальный 'центр'
                      const startR = r - offsetR;
                      const startC = c - offsetC;
                      
@@ -691,11 +709,6 @@
             container.addEventListener('dragstart', handleDragStart);
             container.addEventListener('dragend', handleDragEnd);
             
-            // Обработчики для ИИ-подсказки
-            container.addEventListener('mouseenter', handleShapeHover);
-            container.addEventListener('mouseleave', handleShapeLeave);
-
-
             const shapeDiv = document.createElement('div');
             shapeDiv.classList.add('shape');
 
@@ -725,10 +738,48 @@
             return container;
         }
         
-        // --- ЛОГИКА ИИ-ПОДСКАЗКИ (Обновлено для постоянного отображения) ---
+        // --- ЛОГИКА ИИ-ПОДСКАЗКИ (Обновлено) ---
         
+        function evaluateBoardState(board) {
+            let occupiedCells = 0;
+            let potentialClears = 0;
+            
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] !== EMPTY_COLOR) {
+                        occupiedCells++;
+                    }
+                }
+            }
+            
+            // Простая эвристика для "будущего комбо": ищем, сколько почти полных линий осталось
+            // (например, линии с 7/8 блоков)
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                const filledInRow = board[r].filter(c => c !== EMPTY_COLOR).length;
+                if (filledInRow === BOARD_SIZE - 1) {
+                    potentialClears += 2; // Более высокий вес
+                } else if (filledInRow === BOARD_SIZE - 2) {
+                    potentialClears += 1;
+                }
+            }
+            
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                 let filledInCol = 0;
+                 for (let r = 0; r < BOARD_SIZE; r++) {
+                     if (board[r][c] !== EMPTY_COLOR) filledInCol++;
+                 }
+                 if (filledInCol === BOARD_SIZE - 1) {
+                    potentialClears += 2;
+                } else if (filledInCol === BOARD_SIZE - 2) {
+                    potentialClears += 1;
+                }
+            }
+
+            // Чем больше свободных ячеек (64 - occupiedCells), тем лучше, но важнее линии
+            return (64 - occupiedCells) - potentialClears; 
+        }
+
         function checkPlacementScore(tempBoard, pattern, startRow, startCol) {
-            // Временно размещаем фигуру
             const shapeBlocks = [];
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
@@ -740,6 +791,7 @@
 
             let blocksPlaced = shapeBlocks.length;
             
+            // Создаем временную доску для оценки состояния ПОСЛЕ размещения фигуры
             const tempCells = JSON.parse(JSON.stringify(tempBoard));
             shapeBlocks.forEach(b => {
                 tempCells[b.r][b.c] = 'filled'; 
@@ -748,7 +800,7 @@
             let clearedLines = 0;
             const cellsToClear = new Set();
             
-            // Проверка строк
+            // Проверка линий
             for (let r = 0; r < BOARD_SIZE; r++) {
                 if (tempCells[r].every(color => color !== EMPTY_COLOR)) {
                     clearedLines++;
@@ -756,7 +808,6 @@
                 }
             }
 
-            // Проверка столбцов
             for (let c = 0; c < BOARD_SIZE; c++) {
                 let isColFull = true;
                 for (let r = 0; r < BOARD_SIZE; r++) {
@@ -771,19 +822,32 @@
                 }
             }
             
-            // Оценка: Приоритет 1: Линии (x1000), Приоритет 2: Ячейки (x10), Приоритет 3: Размер фигуры (x1)
-            return (clearedLines * 1000) + (cellsToClear.size * 10) + blocksPlaced;
+            // Создаем доску ПОСЛЕ очистки линий, чтобы оценить будущее состояние
+            let postClearBoard = JSON.parse(JSON.stringify(tempCells));
+            cellsToClear.forEach(id => {
+                const [r, c] = id.split('-').map(Number);
+                postClearBoard[r][c] = EMPTY_COLOR;
+            });
+            
+            const futureScore = evaluateBoardState(postClearBoard);
+
+            // Оценка: 
+            // 1. Количество очищенных линий (x10000)
+            // 2. Количество очищенных ячеек (x100)
+            // 3. Состояние доски (минимизация futureScore) (x-1)
+            return (clearedLines * 10000) + (cellsToClear.size * 100) - futureScore;
         }
 
         function findBestPlacement(shapeData) {
+            if (shapeData === null) return null;
+            
             const pattern = shapeData.pattern;
-            let bestScore = -1;
+            let bestScore = -Infinity;
             let bestPlacement = null;
             
             const rows = pattern.length;
             const cols = pattern[0].length;
 
-            // Ищем первый активный блок в фигуре (для расчета смещения)
             let offsetR = 0;
             let offsetC = 0;
             outer:
@@ -797,7 +861,6 @@
                 }
             }
 
-            // Проверяем все возможные стартовые точки
             for (let startR = -rows + 1; startR < BOARD_SIZE; startR++) {
                 for (let startC = -cols + 1; startC < BOARD_SIZE; startC++) {
                     
@@ -815,13 +878,10 @@
             return bestPlacement;
         }
         
-        function highlightAI(placement, color) {
-            clearHighlight();
-            if (!placement) return;
-            
-            const shapeData = currentShapes[draggedShapeIndex];
-            if (!shapeData) return;
+        // Подсвечивает один лучший ход ИИ (используется при перетаскивании)
+        function highlightAI(placement, shapeData, shapeIndex) {
             const pattern = shapeData.pattern;
+            const color = shapeData.color;
             
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
@@ -831,7 +891,8 @@
                         
                         const cell = document.getElementById(`cell-${boardR}-${boardC}`);
                         if (cell) {
-                            cell.classList.add('ai-highlight');
+                            // Применяем класс, зависящий от индекса, для разного цвета/тени
+                            cell.classList.add(`ai-highlight-${shapeIndex}`); 
                             cell.style.backgroundColor = color;
                             cell.style.opacity = '0.6'; 
                             lastHighlightedCells.push(cell); 
@@ -841,57 +902,31 @@
             }
         }
         
-        function showAIHighlightOnShape(shapeIndex) {
-            // Убираем подсветку со всех фигур
-            document.querySelectorAll('.shape-container').forEach(c => c.classList.remove('ai-target'));
+        // Показывает подсветку для всех 3-х фигур
+        function showAllAIHighlights() {
+            clearHighlight();
             
-            const shapeContainer = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
+            // Убираем классы со всех контейнеров, затем добавляем нужные
+            document.querySelectorAll('.shape-container').forEach(c => {
+                 c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
+            });
             
-            if (!shapeContainer) {
-                // Если фигур нет, или фигура уже размещена, чистим доску
-                clearHighlight(); 
-                return;
-            }
-            
-            shapeContainer.classList.add('ai-target');
-
-            draggedShapeIndex = shapeIndex; // Временно устанавливаем для ИИ
-            const shapeData = currentShapes[shapeIndex];
-            
-            if (!shapeData) return;
-            
-            const placement = findBestPlacement(shapeData);
-            
-            if (placement) {
-                currentBestPlacement = placement;
-                highlightAI(placement, shapeData.color);
-            } else {
-                clearHighlight();
-                currentBestPlacement = null;
-            }
+            currentShapes.forEach((shapeData, index) => {
+                if (shapeData === null) return;
+                
+                const placement = currentBestPlacements[index];
+                if (placement) {
+                    // Подсвечиваем ячейки на доске
+                    highlightAI(placement, shapeData, index);
+                    
+                    // Подсвечиваем контейнер фигур
+                    const container = document.querySelector(`.shape-container[data-shape-index="${index}"]`);
+                    if (container) {
+                         container.classList.add(`ai-target-${index}`);
+                    }
+                }
+            });
         }
-
-
-        function handleShapeHover(event) {
-            if (gameMode !== TRAINING_MODE) return;
-            
-            const container = event.target.closest('.shape-container');
-            if (!container) return;
-            
-            const shapeIndex = parseInt(container.dataset.shapeIndex);
-            
-            // Если курсор на другой фигуре, переключаем ИИ-подсветку
-            if (draggedShapeIndex !== shapeIndex) {
-                showAIHighlightOnShape(shapeIndex);
-            }
-        }
-
-        function handleShapeLeave() {
-            // В режиме TRAINING_MODE мы не чистим подсветку при уходе курсора с фигуры.
-            // Вместо этого она остается на той фигуре, которая была последней.
-            // Чистка происходит только при начале перетаскивания или при очистке/сбросе.
-        }
-
 
         // --- ЛОГИКА DRAG AND DROP ---
 
@@ -903,7 +938,12 @@
             event.dataTransfer.setData('text/plain', draggedShapeIndex); 
 
             container.classList.add('is-dragging');
-            container.classList.remove('ai-target'); // Убираем подсветку ИИ с фигуры
+            
+            // Убираем AI-подсветку со всех фигур и доски
+            document.querySelectorAll('.shape-container').forEach(c => {
+                 c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
+            });
+            clearHighlight();
 
             const shapeData = currentShapes[draggedShapeIndex];
             const targetBlock = event.target.closest('.block');
@@ -926,14 +966,11 @@
                 dragOffset = { row: 0, col: 0 };
             }
             
-            // Скрываем "бокс-призрак" и центрируем его
             const img = new Image();
             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             const blockSize = 22; 
             event.dataTransfer.setDragImage(img, dragOffset.col * blockSize, dragOffset.row * blockSize);
 
-            // Очищаем AI-подсветку, чтобы видеть точное позиционирование
-            clearHighlight(); 
             container.style.opacity = '0.5';
         }
         
@@ -943,14 +980,12 @@
                 container.style.opacity = '1';
                 container.classList.remove('is-dragging'); 
             }
+            
             clearHighlight();
             
-            // Если режим TRAINING_MODE, восстанавливаем AI-подсветку на первой доступной фигуре
+            // Если режим TRAINING_MODE, восстанавливаем AI-подсветку на всех доступных фигурах
             if (gameMode === TRAINING_MODE) {
-                const nextAvailableIndex = currentShapes.findIndex(shape => shape !== null);
-                if (nextAvailableIndex !== -1) {
-                    showAIHighlightOnShape(nextAvailableIndex);
-                }
+                showAllAIHighlights();
             }
             draggedShapeIndex = -1;
         }
@@ -973,6 +1008,8 @@
             const canPlace = canPlaceShape(shapeData.pattern, startRow, startCol);
             
             const highlightColor = canPlace ? shapeData.color : '#e74c3c'; 
+            
+            // Во время перетаскивания используем стандартную подсветку
             highlightCells(shapeData.pattern, startRow, startCol, highlightColor, canPlace);
         }
         
@@ -1010,15 +1047,12 @@
                 
                 checkAndClearLines();
                 
-                // Проверяем, нужно ли генерировать новые фигуры
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes(); 
                 } else if (gameMode === TRAINING_MODE) {
-                    // Если фигуры остались, обновляем ИИ-подсветку на первой доступной
-                    const nextAvailableIndex = currentShapes.findIndex(shape => shape !== null);
-                    if (nextAvailableIndex !== -1) {
-                         showAIHighlightOnShape(nextAvailableIndex);
-                    }
+                    // Обновляем AI-подсветку, пересчитывая лучший ход для оставшихся
+                    currentBestPlacements = currentShapes.map(shape => findBestPlacement(shape));
+                    showAllAIHighlights();
                 }
                 
                 if (isGameOver()) {
@@ -1057,7 +1091,8 @@
                                 cell.style.outline = '2px solid #e74c3c';
                                 lastHighlightedCells.push(cell);
                             }
-                            if(cell) cell.classList.remove('ai-highlight'); 
+                            // Убеждаемся, что AI-классы удалены
+                            cell.classList.remove('ai-highlight-0', 'ai-highlight-1', 'ai-highlight-2');
                         }
                     }
                 }
@@ -1074,7 +1109,7 @@
                 }
                 cell.style.opacity = '1';
                 cell.style.outline = 'none';
-                cell.classList.remove('ai-highlight');
+                cell.classList.remove('ai-highlight-0', 'ai-highlight-1', 'ai-highlight-2');
             });
             lastHighlightedCells = [];
         }
@@ -1123,7 +1158,7 @@
                     }
                 }
             }
-            updateScore(blocksPlaced); 
+            updateScore(blocksPlaced); // Базовые очки за поставленные блоки
         }
 
         function checkAndClearLines() {
@@ -1153,15 +1188,16 @@
             }
             
             if (clearedLinesCount > 0) {
-                updateComboDisplay(clearedLinesCount);
-
-                let bonus = 0;
-                if (comboCounter > 1) {
-                    bonus = cellsToClear.size * (comboCounter - 1); 
-                }
+                // 1. Множитель за одновременное очищение линий (xN)
+                const lineMultiplier = Math.min(clearedLinesCount, 5);
+                let linePoints = cellsToClear.size * lineMultiplier;
                 
-                const totalPoints = cellsToClear.size + bonus; 
-                updateScore(totalPoints); 
+                // 2. Множитель за последовательное комбо (xCombo)
+                const totalMultiplier = comboCounter > 0 ? comboCounter : 1;
+                let bonusPoints = linePoints * totalMultiplier;
+                
+                updateScore(bonusPoints); 
+                updateComboDisplay(clearedLinesCount);
 
                 cellsToClear.forEach(({r, c}) => {
                     const cell = document.getElementById(`cell-${r}-${c}`);
