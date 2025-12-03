@@ -178,10 +178,7 @@ height: 75px;
 transition: box-shadow 0.2s, opacity 0.2s;
         }
         
-        .shape-container.is-dragging {
-             opacity: 0.01;
-box-shadow: none;
-        }
+        /* УДАЛЕН CSS для .is-dragging (Фикс: фигуры больше не исчезают при клике) */
         
         /* Подсветка фигуры, когда она является целью ИИ */
         .shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1;
@@ -1020,7 +1017,7 @@ modeInfoElement.style.color = '#e74c3c';
             if (!container) return;
             draggedShapeIndex = parseInt(container.dataset.shapeIndex);
             event.dataTransfer.setData('text/plain', draggedShapeIndex);
-            container.classList.add('is-dragging');
+            // УДАЛЕНО: container.classList.add('is-dragging'); // ФИКС: Фигура больше не скрывается при старте
 
             // Очищаем существующие подсказки ИИ
             document.querySelectorAll('.shape-container').forEach(c => {
@@ -1051,12 +1048,13 @@ modeInfoElement.style.color = '#e74c3c';
         }
 
         function handleDragEnd(event) {
+            clearHighlight(); // ФИКС: Убирает остаточную подсветку с доски
             const container = event.target.closest('.shape-container');
             if (container) {
-                container.classList.remove('is-dragging');
+                // УДАЛЕНО: container.classList.remove('is-dragging');
             }
             draggedShapeIndex = -1;
-            clearHighlight();
+            
             if (gameMode === TRAINING_MODE) {
                 showAllAIHighlights();
             }
@@ -1121,7 +1119,7 @@ modeInfoElement.style.color = '#e74c3c';
                     generateNextShapes();
                 } else if (gameMode === TRAINING_MODE) {
                     currentBestPlacements = currentShapes.map(shape => findBestPlacement(shape));
-                    showAllAIHighlights();
+                    showAllAIHighlights(); // ФИКС: Показываем подсказки для оставшихся фигур
                 }
 
                 if (isGameOver()) {
