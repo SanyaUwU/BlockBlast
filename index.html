@@ -10,72 +10,69 @@
     <style>
         /* Анимация градиента */
         @keyframes background-animation {
-            0% { background-position: 0% 50%;
-}
-            50% { background-position: 100% 50%;
-}
-            100% { background-position: 0% 50%;
-}
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Общие стили */
         body {
             font-family: 'Poppins', sans-serif;
-display: flex;
+            display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
             padding: 30px;
             transition: background-color 0.3s, color 0.3s;
-/* Яркий анимированный градиент */
+            /* Яркий анимированный градиент */
             background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
-background-size: 400% 400%;
+            background-size: 400% 400%;
             animation: background-animation 20s ease infinite;
             color: #ecf0f1;
-}
+        }
 
         .game-container {
             background-color: #ffffff;
-padding: 25px;
+            padding: 25px;
             border-radius: 15px; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); 
             text-align: center;
             max-width: 380px;
-transition: background-color 0.3s, box-shadow 0.3s;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         h1 {
             font-weight: 700;
-color: #ff6b6b; 
+            color: #ff6b6b; 
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             transition: color 0.3s;
             margin-top: 0;
             margin-bottom: 15px;
-}
+        }
 
         /* Комбо дисплей */
         #combo-display {
             font-weight: 700;
-text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
+            text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
             letter-spacing: 1px;
             transition: opacity 0.5s;
             color: #e67e22;
             font-size: 1.1em;
             opacity: 0;
-min-height: 1.2em;
+            min-height: 1.2em;
         }
         
         /* Стили для панели счета */
         .score-panel {
             font-size: 1.3em;
-margin-bottom: 20px;
+            margin-bottom: 20px;
             font-weight: 600;
             color: #333;
         }
         
         #mode-info {
             font-size: 0.9em;
-font-weight: 400;
+            font-weight: 400;
             margin-top: 5px;
             min-height: 1.1em;
         }
@@ -83,7 +80,7 @@ font-weight: 400;
         /* Кнопки в шапке */
         .header-buttons {
             display: flex;
-justify-content: space-between;
+            justify-content: space-between;
             gap: 5px; 
             margin-bottom: 15px;
             flex-wrap: wrap;
@@ -92,74 +89,71 @@ justify-content: space-between;
         /* Сетка */
         #game-board {
             width: 256px;
-height: 256px;
+            height: 256px;
             display: grid;
             grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
             border: 6px solid #ff9f43; 
             border-radius: 8px; 
             background-color: #dfe6e9;
-margin: 0 auto 25px auto;
+            margin: 0 auto 25px auto;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
             transition: border-color 0.3s, background-color 0.3s;
-}
+        }
 
         .cell {
             width: 100%;
-height: 100%;
+            height: 100%;
             box-sizing: border-box;
             border: 1px solid #b2bec3; 
             transition: background-color 0.1s, opacity 0.1s, transform 0.1s;
-}
+        }
         
         .filled {
             border: none;
-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); 
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); 
             opacity: 1 !important;
-}
+        }
         
         /* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
         .ai-highlight-0 { 
             box-shadow: 0 0 8px 3px #1dd1a1 !important;
-border: 2px solid #1dd1a1 !important;
+            border: 2px solid #1dd1a1 !important;
         }
         .ai-highlight-1 { 
             box-shadow: 0 0 8px 3px #54a0ff !important;
-border: 2px solid #54a0ff !important;
+            border: 2px solid #54a0ff !important;
         }
         .ai-highlight-2 { 
             box-shadow: 0 0 8px 3px #ff9f43 !important;
-border: 2px solid #ff9f43 !important;
+            border: 2px solid #ff9f43 !important;
         }
         
         /* Радужная Анимация исчезновения */
         .clearing {
             animation: rainbow-fade 0.4s ease-in-out forwards;
-}
+        }
 
         @keyframes rainbow-fade {
-            0% { background-color: #ff0084;
-transform: scale(1); opacity: 1; }
-            50% { background-color: #3300ff;
-}
-            100% { background-color: #00ff00; transform: scale(0); opacity: 0;
-}
+            0% { background-color: #ff0084; transform: scale(1); opacity: 1; }
+            50% { background-color: #3300ff; }
+            100% { background-color: #00ff00; transform: scale(0); opacity: 0; }
         }
 
         /* Панель Фигур */
         .next-blocks-panel {
             margin-top: 20px;
-padding: 15px;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 10px;
             background-color: #f8f8f8;
             box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
-transition: background-color 0.3s, border-color 0.3s;
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         #next-blocks {
             display: flex;
-justify-content: space-around;
+            justify-content: space-around;
             align-items: center; 
             padding: 10px 0;
             min-height: 100px;
@@ -167,7 +161,7 @@ justify-content: space-around;
 
         .shape-container {
             width: 75px;
-height: 75px;
+            height: 75px;
             display: flex; 
             justify-content: center;
             align-items: center;
@@ -175,40 +169,35 @@ height: 75px;
             background: none; 
             box-shadow: none;
             border-radius: 8px;
-transition: box-shadow 0.2s, opacity 0.2s;
+            transition: box-shadow 0.2s, opacity 0.2s;
         }
         
-        /* УДАЛЕННЫЙ СТИЛЬ: .shape-container.is-dragging */
-        
         /* Подсветка фигуры, когда она является целью ИИ */
-        .shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1;
-}
-        .shape-container.ai-target-1 { box-shadow: 0 0 0 3px #54a0ff;
-}
-        .shape-container.ai-target-2 { box-shadow: 0 0 0 3px #ff9f43;
-}
+        .shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1; }
+        .shape-container.ai-target-1 { box-shadow: 0 0 0 3px #54a0ff; }
+        .shape-container.ai-target-2 { box-shadow: 0 0 0 3px #ff9f43; }
         
         .shape-container[draggable="true"]:hover {
              box-shadow: 0 0 0 2px #6c5ce7;
-}
+        }
         
         .shape {
             display: grid;
-}
+        }
 
         .block {
             width: 22px;
-height: 22px;
+            height: 22px;
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
-/* ФИКС ДЛЯ ПЕРЕТАСКИВАНИЯ (pointer-events: none) */
+            /* ФИКС ДЛЯ ПЕРЕТАСКИВАНИЯ (pointer-events: none) */
             pointer-events: none;
-}
+        }
         
         /* === ГРАДИЕНТНЫЕ КНОПКИ === */
         .game-button {
             padding: 10px 10px;
-flex-grow: 1;
+            flex-grow: 1;
             font-size: 1em;
             cursor: pointer;
             border: none;
@@ -216,34 +205,34 @@ flex-grow: 1;
             font-weight: 600;
             transition: all 0.2s;
             color: white;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             background-size: 200% auto;
-}
+        }
         
         .game-button:hover {
             background-position: right center;
-}
+        }
         
         .game-button:active {
             transform: translateY(1px);
-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         /* Градиенты для конкретных кнопок */
         #reset-button { 
             background-image: linear-gradient(to right, #6c5ce7 0%, #a29bfe 100%);
-}
+        }
         #settings-button { 
             background-image: linear-gradient(to right, #ff7675 0%, #e84393 100%);
-}
+        }
         #mode-button { 
             background-image: linear-gradient(to right, #00b894 0%, #00cec9 100%);
-}
+        }
 
         /* === СТИЛИ МОДАЛЬНОГО ОКНА === */
         .modal {
             display: none;
-position: fixed; 
+            position: fixed; 
             z-index: 100; 
             left: 0;
             top: 0;
@@ -251,11 +240,11 @@ position: fixed;
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.6);
-}
+        }
 
         .modal-content {
             background-color: #fefefe;
-margin: 15% auto; 
+            margin: 15% auto; 
             padding: 30px;
             border: none;
             width: 80%; 
@@ -264,25 +253,25 @@ margin: 15% auto;
             text-align: left;
             transition: background-color 0.3s;
             color: #333;
-}
+        }
 
         .close-button {
             color: #aaa;
-float: right; 
+            float: right; 
             font-size: 28px; 
             font-weight: bold;
         }
 
         .close-button:hover, .close-button:focus {
             color: #000;
-text-decoration: none; 
+            text-decoration: none; 
             cursor: pointer;
         }
         
         /* Стили для кнопок выбора режима */
         .mode-selection-button {
             width: 100%;
-padding: 15px;
+            padding: 15px;
             margin-bottom: 10px;
             font-size: 1.1em;
             text-align: left;
@@ -291,106 +280,100 @@ padding: 15px;
             color: #333;
             border-radius: 10px;
             cursor: pointer;
-transition: all 0.2s;
+            transition: all 0.2s;
             background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%); 
             background-size: 200% auto;
             color: #333;
-}
+        }
 
         .mode-selection-button.active {
             border-color: #6c5ce7;
-background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
+            background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
             color: white;
             font-weight: 600;
-}
+        }
         
         /* Стили для таблицы лидеров */
         #leaderboard-list {
             list-style-type: none;
-padding: 0;
+            padding: 0;
         }
         #leaderboard-list li {
             padding: 10px;
-margin-bottom: 5px;
+            margin-bottom: 5px;
             background-color: #f1f1f1;
             border-radius: 8px;
             font-weight: 400;
             display: flex;
             justify-content: space-between;
             align-items: center;
-}
+        }
         #leaderboard-list li strong {
             color: #ff6b6b;
-font-size: 1.1em;
+            font-size: 1.1em;
             margin-right: 10px;
         }
         
-        /* === ТЕМНАЯ ТЕМА === (Адаптация для новых модальных окон) */
+        /* === ТЕМНАЯ ТЕМА === */
         .dark-mode .game-container {
             background-color: #34495e;
-box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
         }
         
-        .dark-mode .score-panel { color: #ecf0f1;
-}
-        .dark-mode #mode-info { color: #ccc !important;
-}
+        .dark-mode .score-panel { color: #ecf0f1; }
+        .dark-mode #mode-info { color: #ccc !important; }
         .dark-mode #game-board {
             border: 6px solid #a29bfe;
-background-color: #4a637d; 
+            background-color: #4a637d; 
         }
-        .dark-mode .cell { border: 1px solid #7f8c8d;
-}
-        .dark-mode .block { border: 1px solid rgba(255, 255, 255, 0.5);
-}
+        .dark-mode .cell { border: 1px solid #7f8c8d; }
+        .dark-mode .block { border: 1px solid rgba(255, 255, 255, 0.5); }
         .dark-mode .next-blocks-panel {
             background-color: #3f556d;
-border: 1px solid #5d6d7e;
+            border: 1px solid #5d6d7e;
         }
         
         .dark-mode .modal-content {
             background-color: #3f556d;
-color: #ecf0f1;
+            color: #ecf0f1;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-}
-        .dark-mode .close-button { color: #ccc;
-}
-        .dark-mode .close-button:hover { color: #fff;
-}
+        }
+        .dark-mode .close-button { color: #ccc; }
+        .dark-mode .close-button:hover { color: #fff; }
         
         .dark-mode .mode-selection-button {
             background-image: linear-gradient(to right, #f7f7f7 0%, #f1f1f1 100%);
-color: #333;
+            color: #333;
         }
         .dark-mode .mode-selection-button.active {
              border-color: #a29bfe;
-background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
+            background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
              color: white;
         }
         .dark-mode #leaderboard-list li {
              background-color: #4a637d;
-color: #ecf0f1;
+            color: #ecf0f1;
         }
 
 
         /* === СТИЛЬ КОПИРАЙТА === */
         .sanwec-credit {
             font-family: 'Poppins', sans-serif;
-font-weight: 600;
+            font-weight: 600;
             font-size: 1.2em;
             text-align: center;
             margin-top: 30px;
             background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00, #ff0084);
             background-size: 400% auto;
             -webkit-background-clip: text;
--webkit-text-fill-color: transparent;
+            -webkit-text-fill-color: transparent;
             animation: text-flow 4s linear infinite;
         }
         
         @keyframes text-flow {
             to {
                 background-position: 400% center;
-}
+            }
         }
     </style>
 </head>
@@ -401,8 +384,7 @@ font-weight: 600;
         <div class="header-buttons">
             <button id="auth-button" class="game-button" style="background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Вход/Регистрация</button>
             <button id="leaderboard-button" class="game-button" style="background-image: linear-gradient(to right, #FF9800 0%, #FFC107 100%);">Лидеры 🏆</button>
-            <button id="reset-button" 
-class="game-button">Начать заново</button>
+            <button id="reset-button" class="game-button">Начать заново</button>
         </div>
 
         <div class="score-panel">
@@ -412,13 +394,16 @@ class="game-button">Начать заново</button>
         </div>
 
         <div id="game-board">
-            </div>
+        </div>
 
         <div class="next-blocks-panel">
-   
-<h3>Следующие фигуры:</h3>
+            <div class="header-buttons" style="margin-bottom: 5px;">
+                <h3>Следующие фигуры:</h3>
+                <button id="mode-button" class="game-button" style="flex-grow: 0; margin-left: auto;">Режим 🕹️</button>
+                <button id="settings-button" class="game-button" style="flex-grow: 0; width: 40px; padding: 10px 0;">⚙️</button>
+            </div>
             <div id="next-blocks">
-                </div>
+            </div>
         </div>
     </div>
     
@@ -426,20 +411,16 @@ class="game-button">Начать заново</button>
         <div class="modal-content">
             <span class="close-button" data-modal="mode">&times;</span>
             <h2>Выберите Режим Игры</h2>
-  
-           <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
             
             <button class="mode-selection-button active" data-mode="normal">
                 **Обычный режим**
-                <br><span style="font-size: 0.8em;
-color: inherit;">Счет идет в таблицу лидеров.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">Счет идет в таблицу лидеров.</span>
             </button>
             
             <button class="mode-selection-button" data-mode="training">
                 **Тренировка с ИИ-подсказчиком** 🤖
-                <br><span style="font-size: 0.8em;
-color: inherit;">ИИ показывает лучший ход. Счет не учитывается.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучший ход. Счет не учитывается.</span>
             </button>
         </div>
     </div>
@@ -448,35 +429,25 @@ color: inherit;">ИИ показывает лучший ход. Счет не у
         <div class="modal-content">
             <span class="close-button" data-modal="auth">&times;</span>
             <h2 id="auth-title">Вход / Регистрация</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
             
             <form id="auth-form">
                 <div style="margin-bottom: 15px;">
-                    <label for="auth-email" style="font-weight: 600;
-display: block; margin-bottom: 5px;">Email:</label>
-                    <input type="email" id="auth-email" required style="width: 100%;
-padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
-color: #333;">
+                    <label for="auth-email" style="font-weight: 600; display: block; margin-bottom: 5px;">Email:</label>
+                    <input type="email" id="auth-email" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
                 </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <label for="auth-password" style="font-weight: 600;
-display: block; margin-bottom: 5px;">Пароль:</label>
-                    <input type="password" id="auth-password" required style="width: 100%;
-padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
-color: #333;">
+                    <label for="auth-password" style="font-weight: 600; display: block; margin-bottom: 5px;">Пароль:</label>
+                    <input type="password" id="auth-password" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
                 </div>
                 
-                <button type="submit" id="auth-submit-button" class="game-button" style="width: 100%;
-margin-bottom: 10px; background-image: linear-gradient(to right, #4CAF50 0%, #8BC34A 100%);">Войти</button>
+                <button type="submit" id="auth-submit-button" class="game-button" style="width: 100%; margin-bottom: 10px; background-image: linear-gradient(to right, #4CAF50 0%, #8BC34A 100%);">Войти</button>
                 
-                <button type="button" id="toggle-auth-button" class="game-button" style="width: 100%;
-background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Нужна регистрация?</button>
+                <button type="button" id="toggle-auth-button" class="game-button" style="width: 100%; background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Нужна регистрация?</button>
             </form>
             
-            <p id="auth-message" style="margin-top: 15px;
-font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
+            <p id="auth-message" style="margin-top: 15px; font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
         </div>
     </div>
 
@@ -484,8 +455,7 @@ font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
         <div class="modal-content">
             <span class="close-button" data-modal="leaderboard">&times;</span>
             <h2>Таблица Лидеров 🏆</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
             <ol id="leaderboard-list"></ol>
         </div>
     </div>
@@ -495,13 +465,10 @@ margin-bottom: 20px;">
         <div class="modal-content">
             <span class="close-button" data-modal="settings">&times;</span>
             <h2>Настройки Игры</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
-            <p style="font-size: 1.1em; font-weight: 600;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
+            <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">
                 Тема оформления:
-                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db;
-margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
+                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
             </p>
             
             <div class="sanwec-credit">By: Sanwec</div>
@@ -513,8 +480,7 @@ margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #34
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     
     <script>
-        // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ 
----
+        // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ ---
         const BOARD_SIZE = 8; 
         const EMPTY_COLOR = ''; 
         
@@ -531,56 +497,55 @@ margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #34
         let currentShapes = []; 
         let draggedShapeIndex = -1; 
         let dragOffset = { row: 0, col: 0 };
-let currentBestPlacements = []; 
+        let currentBestPlacements = []; 
         
         // UI элементы
         const gameBoardElement = document.getElementById('game-board');
-const scoreElement = document.getElementById('score');
+        const scoreElement = document.getElementById('score');
         const modeInfoElement = document.getElementById('mode-info');
         const comboDisplay = document.getElementById('combo-display');
         const nextBlocksElement = document.getElementById('next-blocks');
         const settingsModal = document.getElementById('settings-modal');
-const modeModal = document.getElementById('mode-modal');
+        const modeModal = document.getElementById('mode-modal');
         
         const resetButton = document.getElementById('reset-button');
         const settingsButton = document.getElementById('settings-button');
         const modeButton = document.getElementById('mode-button'); 
         const themeToggleButton = document.getElementById('theme-toggle-button');
-const closeButtons = document.querySelectorAll('.close-button');
+        const closeButtons = document.querySelectorAll('.close-button');
         const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
         
         // === FIREBASE И АУТЕНТИФИКАЦИЯ UI ЭЛЕМЕНТЫ ===
         const authModal = document.getElementById('auth-modal');
-const authForm = document.getElementById('auth-form');
+        const authForm = document.getElementById('auth-form');
         const authEmailInput = document.getElementById('auth-email');
         const authPasswordInput = document.getElementById('auth-password');
         const authSubmitButton = document.getElementById('auth-submit-button');
         const toggleAuthButton = document.getElementById('toggle-auth-button');
-const authTitle = document.getElementById('auth-title');
+        const authTitle = document.getElementById('auth-title');
         const authMessage = document.getElementById('auth-message');
         const authButton = document.getElementById('auth-button');
         
         const leaderboardButton = document.getElementById('leaderboard-button');
         const leaderboardModal = document.getElementById('leaderboard-modal');
-const leaderboardList = document.getElementById('leaderboard-list');
+        const leaderboardList = document.getElementById('leaderboard-list');
 
         let isRegistering = false;
         let currentUser = null;
-// Определение фигур
+        
+        // Определение фигур
         const SHAPES = [
             // 1x1, 1x2, 2x1 (базовые)
             { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
             { size: 2, color: '#feca57', pattern: [[1,1]] },
             { size: 2, color: '#feca57', pattern: [[1],[1]] },
             
- 
             // 2x2 квадрат, 1x3, 3x1 (базовые)
             { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1,1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1],[1],[1]] },
             
             // 1x4, 4x1
- 
             { size: 4, color: '#a29bfe', pattern: [[1,1,1,1]] },
             { size: 4, color: '#a29bfe', pattern: [[1],[1],[1],[1]] },
 
@@ -594,14 +559,14 @@ const leaderboardList = document.getElementById('leaderboard-list');
             { size: 4, color: '#fab1a0', pattern: [[1],[1,1],[1]] }, // T (вертикальный)
 
             // Z/S-образные (3 блока)
-            { size: 3, color: '#d63031', pattern: [[1,1,0],[0,1,1]] }, // 
-Z
+            { size: 3, color: '#d63031', pattern: [[1,1,0],[0,1,1]] }, // Z
             { size: 3, color: '#d63031', pattern: [[0,1],[1,1],[1,0]] }, // S
 
             // 3x3 квадрат
             { size: 9, color: '#ff6b81', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
-// === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
+        
+        // === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
         // !!! ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
         const firebaseConfig = {
             apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
@@ -610,26 +575,25 @@ Z
             storageBucket: "block-blast-leader.firebasestorage.app",
             messagingSenderId: "435353232888",
             appId: "1:435353232888:web:79480b0345c0209e8d220d",
-            
-measurementId: "G-ZKCKX6NBKZ" 
+            measurementId: "G-ZKCKX6NBKZ" 
         };
 
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-const db = firebase.firestore();
+        const db = firebase.firestore();
 
         
         // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОБРАБОТЧИКИ UI ---
 
         function initializeGame(mode = NORMAL_MODE) {
             gameMode = mode;
-gameBoard = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
+            gameBoard = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
             gameBoardElement.innerHTML = '';
             
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const cell = document.createElement('div');
-cell.classList.add('cell');
+                    cell.classList.add('cell');
                     cell.dataset.row = r;
                     cell.dataset.col = c;
                     cell.id = `cell-${r}-${c}`;
@@ -638,11 +602,11 @@ cell.classList.add('cell');
                     cell.addEventListener('drop', handleDrop);
                     cell.addEventListener('dragleave', handleDragLeave); 
                     gameBoardElement.appendChild(cell);
-}
+                }
             }
 
             nextBlocksElement.addEventListener('dragover', (e) => e.preventDefault());
-nextBlocksElement.addEventListener('drop', (e) => e.preventDefault());
+            nextBlocksElement.addEventListener('drop', (e) => e.preventDefault());
             
             score = 0;
             comboCounter = 0;
@@ -651,7 +615,8 @@ nextBlocksElement.addEventListener('drop', (e) => e.preventDefault());
             updateModeInfo();
             updateComboDisplay(0);
             generateNextShapes();
-// Обработчики кнопок
+            
+            // Обработчики кнопок
             resetButton.onclick = () => initializeGame(gameMode);
             settingsButton.onclick = () => settingsModal.style.display = 'block';
             modeButton.onclick = () => showModeModal();
@@ -709,17 +674,17 @@ nextBlocksElement.addEventListener('drop', (e) => e.preventDefault());
 
         function updateScore(points = 0) {
             score += points;
-scoreElement.textContent = score;
+            scoreElement.textContent = score;
         }
 
         function updateModeInfo() {
             if (gameMode === TRAINING_MODE) {
                 modeInfoElement.textContent = 'Тренировочный режим. Счет не ведется.';
-modeInfoElement.style.color = '#e74c3c';
+                modeInfoElement.style.color = '#e74c3c';
             } else {
                 modeInfoElement.textContent = 'Обычный режим (Таблица лидеров).';
                 modeInfoElement.style.color = document.body.classList.contains('dark-mode') ? '#ecf0f1' : '#333';
-}
+            }
         }
 
         function updateComboDisplay(linesCleared = 0) {
@@ -1016,9 +981,7 @@ modeInfoElement.style.color = '#e74c3c';
             if (!container) return;
             draggedShapeIndex = parseInt(container.dataset.shapeIndex);
             event.dataTransfer.setData('text/plain', draggedShapeIndex);
-            // УДАЛЕНО: container.classList.add('is-dragging'); // ФИКС: Фигура больше не скрывается при старте
-
-            // Очищаем существующие подсказки ИИ
+            // Удаление подсветки ИИ перед началом перетаскивания
             document.querySelectorAll('.shape-container').forEach(c => {
                 c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
@@ -1048,10 +1011,6 @@ modeInfoElement.style.color = '#e74c3c';
 
         function handleDragEnd(event) {
             clearHighlight(); // ФИКС: Убирает остаточную подсветку с доски
-            const container = event.target.closest('.shape-container');
-            if (container) {
-                // УДАЛЕНО: container.classList.remove('is-dragging');
-            }
             draggedShapeIndex = -1;
             
             if (gameMode === TRAINING_MODE) {
@@ -1117,8 +1076,9 @@ modeInfoElement.style.color = '#e74c3c';
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes();
                 } else if (gameMode === TRAINING_MODE) {
+                    // ФИКС: Пересчитываем подсказки для оставшихся фигур
                     currentBestPlacements = currentShapes.map(shape => findBestPlacement(shape));
-                    showAllAIHighlights(); // ФИКС: Показываем подсказки для оставшихся фигур
+                    showAllAIHighlights(); 
                 }
 
                 if (isGameOver()) {
@@ -1133,8 +1093,7 @@ modeInfoElement.style.color = '#e74c3c';
 
         function highlightCells(pattern, startRow, startCol, color, isPossible) {
             clearHighlight();
-            const highlightColor = isPossible ?
-color : '#e74c3c';
+            const highlightColor = isPossible ? color : '#e74c3c';
             const rows = pattern.length;
             const cols = pattern[0].length;
             
@@ -1246,8 +1205,7 @@ color : '#e74c3c';
                 let linePoints = cellsToClear.size * lineMultiplier * 10; 
                 
                 // 2. Множитель за последовательное комбо (xCombo)
-                const totalMultiplier = comboCounter > 0 ?
-comboCounter : 1;
+                const totalMultiplier = comboCounter > 0 ? comboCounter : 1;
                 let bonusPoints = linePoints * totalMultiplier;
                 
                 updateScore(bonusPoints);
@@ -1361,11 +1319,9 @@ comboCounter : 1;
         // Переключение между Входом и Регистрацией
         toggleAuthButton.onclick = () => {
             isRegistering = !isRegistering;
-            authTitle.textContent = isRegistering ?
-'Регистрация' : 'Вход';
+            authTitle.textContent = isRegistering ? 'Регистрация' : 'Вход';
             authSubmitButton.textContent = isRegistering ? 'Зарегистрироваться' : 'Войти';
-            toggleAuthButton.textContent = isRegistering ? 'Уже есть аккаунт?
-Войти' : 'Нужна регистрация?';
+            toggleAuthButton.textContent = isRegistering ? 'Уже есть аккаунт? Войти' : 'Нужна регистрация?';
             authMessage.textContent = '';
         };
 
