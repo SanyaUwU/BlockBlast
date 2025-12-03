@@ -6,25 +6,36 @@
     <title>Block Blast Game</title>
     
     <style>
+        /* Анимация градиента для фона */
+        @keyframes background-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         /* Общие стили */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            background-color: #f0f0f0;
             padding: 20px;
             transition: background-color 0.3s, color 0.3s;
+            
+            /* Анимированный градиентный фон */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: background-animation 15s ease infinite;
         }
 
         .game-container {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             text-align: center;
-            max-width: 300px; /* Уменьшено под сетку 8x8 */
+            max-width: 300px; 
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
@@ -33,12 +44,11 @@
             transition: color 0.3s;
         }
 
-        /* Стили для панели счета */
-        .score-panel {
-            font-size: 1.2em;
-            margin-bottom: 20px;
+        /* Комбо дисплей */
+        #combo-display {
             font-weight: bold;
-            color: #333;
+            text-shadow: 0 0 5px rgba(230, 126, 34, 0.5);
+            transition: opacity 0.5s;
         }
 
         /* Кнопки в шапке */
@@ -48,12 +58,12 @@
             margin-bottom: 10px;
         }
 
-        /* Стили для Игрового Поля (Сетки) */
+        /* Сетка */
         #game-board {
-            width: 240px; /* 8 клеток * 30px каждая */
+            width: 240px; 
             height: 240px;
             display: grid;
-            grid-template-columns: repeat(8, 1fr); /* Сетка 8x8 */
+            grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
             border: 5px solid #6c5ce7;
             background-color: #dfe6e9; 
@@ -61,7 +71,6 @@
             transition: border-color 0.3s, background-color 0.3s;
         }
 
-        /* Стили для отдельной ячейки сетки */
         .cell {
             width: 100%;
             height: 100%;
@@ -90,7 +99,7 @@
             100% { background-color: #4b0082; transform: scale(0); opacity: 0; }
         }
 
-        /* Панель Следующих Фигур */
+        /* Панель Фигур */
         .next-blocks-panel {
             margin-top: 20px;
             padding: 10px;
@@ -108,7 +117,7 @@
         }
 
         .shape-container {
-            width: 70px; /* Уменьшено, чтобы вместить 3 фигуры */
+            width: 70px;
             height: 70px;
             display: flex;
             justify-content: center;
@@ -119,10 +128,6 @@
             transition: border-color 0.2s, opacity 0.2s;
         }
         
-        .shape-container:hover {
-            border-color: #6c5ce7;
-        }
-
         .shape {
             display: grid;
         }
@@ -146,110 +151,76 @@
             margin: 5px;
         }
         
-        #reset-button {
-            background-color: #6c5ce7;
-        }
-
-        #reset-button:hover {
-            background-color: #5a4bcf;
-        }
-
-        #settings-button {
-            background-color: #e84393;
-        }
-
-        #settings-button:hover {
-            background-color: #c7297e;
-        }
+        #reset-button { background-color: #6c5ce7; }
+        #reset-button:hover { background-color: #5a4bcf; }
+        #settings-button { background-color: #e84393; }
+        #settings-button:hover { background-color: #c7297e; }
 
         /* === ТЕМНАЯ ТЕМА === */
-        .dark-mode {
-            background-color: #2c3e50; 
-            color: #ecf0f1; 
-        }
-
         .dark-mode .game-container {
             background-color: #34495e; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
         }
         
-        .dark-mode h1 {
-            color: #8e44ad; 
-        }
-
-        .dark-mode .score-panel {
-            color: #ecf0f1;
-        }
-
+        .dark-mode h1 { color: #8e44ad; }
+        .dark-mode .score-panel { color: #ecf0f1; }
         .dark-mode #game-board {
             border: 5px solid #8e44ad;
             background-color: #4a637d; 
         }
-
-        .dark-mode .cell {
-            border: 1px solid #7f8c8d; 
-        }
-        
-        .dark-mode .block {
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
+        .dark-mode .cell { border: 1px solid #7f8c8d; }
+        .dark-mode .block { border: 1px solid rgba(255, 255, 255, 0.5); }
         .dark-mode .next-blocks-panel {
             background-color: #3f556d;
             border: 1px solid #5d6d7e;
         }
-        
-        /* Модальное окно настроек */
+        .dark-mode .modal-content {
+            background-color: #3f556d;
+            color: #ecf0f1;
+        }
+        .dark-mode .close-button { color: #ccc; }
+        .dark-mode .close-button:hover,
+        .dark-mode .close-button:focus { color: #fff; }
+
+        /* Модальное окно */
         .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1; 
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
+            display: none; position: fixed; z-index: 1; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto;
             background-color: rgba(0,0,0,0.4);
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; 
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; 
-            max-width: 300px;
-            border-radius: 10px;
-            text-align: left;
+            margin: 15% auto; padding: 20px; border: 1px solid #888;
+            width: 80%; max-width: 300px; border-radius: 10px; text-align: left;
             transition: background-color 0.3s;
         }
 
-        .dark-mode .modal-content {
-            background-color: #3f556d;
-            color: #ecf0f1;
-        }
-
         .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
+            color: #aaa; float: right; font-size: 28px; font-weight: bold;
         }
 
-        .close-button:hover,
-        .close-button:focus {
-            color: #000;
-            text-decoration: none;
-            cursor: pointer;
+        .close-button:hover, .close-button:focus {
+            color: #000; text-decoration: none; cursor: pointer;
         }
         
-        .dark-mode .close-button {
-            color: #ccc;
+        /* === СТИЛЬ КОПИРАЙТА === */
+        .sanwec-credit {
+            font-family: 'Georgia', serif;
+            font-size: 1.1em;
+            text-align: center;
+            margin-top: 20px;
+            background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-flow 3s ease infinite;
         }
         
-        .dark-mode .close-button:hover,
-        .dark-mode .close-button:focus {
-            color: #fff;
+        @keyframes text-flow {
+            to {
+                background-position: 200% center;
+            }
         }
     </style>
 </head>
@@ -264,7 +235,7 @@
 
         <div class="score-panel">
             Счет: <span id="score">0</span>
-            <div id="combo-display" style="color: #e67e22; font-size: 1.1em;"></div>
+            <div id="combo-display" style="color: #e67e22; font-size: 1.1em; opacity: 0;"></div>
         </div>
 
         <div id="game-board">
@@ -286,17 +257,23 @@
                 Тема оформления:
                 <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 0;">Сменить тему</button>
             </p>
+            
+            <div class="sanwec-credit">By: Sanwec</div>
         </div>
     </div>
 
     <script>
         // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ ---
-        const BOARD_SIZE = 8; // ИЗМЕНЕНО НА 8
+        const BOARD_SIZE = 8; 
         const EMPTY_COLOR = ''; 
         let score = 0;
         let gameBoard = []; 
         let lastHighlightedCells = []; 
-        let comboCounter = 0; // Счетчик комбо
+        let comboCounter = 0; 
+        let currentShapes = []; 
+        let draggedShapeIndex = -1; 
+        let dragOffset = { row: 0, col: 0 }; 
+        let canClearNextShapes = false; // Флаг для механики комбо
 
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
@@ -307,8 +284,8 @@
         const settingsButton = document.getElementById('settings-button');
         const closeButton = document.querySelector('.close-button');
         const themeToggleButton = document.getElementById('theme-toggle-button');
-
-        // Определение фигур (оставлено прежним)
+        
+        // Определение фигур
         const SHAPES = [
             { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
             { size: 2, color: '#feca57', pattern: [[1,1]] },
@@ -326,9 +303,6 @@
             { size: 9, color: '#ff9f43', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
 
-        let currentShapes = []; 
-        let draggedShapeIndex = -1; 
-        let dragOffset = { row: 0, col: 0 }; // Смещение от верхнего левого угла фигуры до курсора
 
         // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОТРИСОВКИ ---
 
@@ -356,8 +330,9 @@
             
             score = 0;
             comboCounter = 0;
+            canClearNextShapes = false; // Сброс флага
             updateScore();
-            updateComboDisplay();
+            updateComboDisplay(0);
             generateNextShapes();
             
             resetButton.onclick = initializeGame;
@@ -378,20 +353,29 @@
         function updateComboDisplay(linesCleared = 0) {
             if (linesCleared > 0) {
                 comboCounter++;
-            } else {
-                comboCounter = 0;
-            }
-
+                canClearNextShapes = true; // Установка флага
+            } 
+            
             if (comboCounter > 1) {
-                comboDisplay.textContent = `COMBO x${comboCounter}! +${comboCounter * 5} бонус`;
+                comboDisplay.textContent = `COMBO x${comboCounter}!`;
                 comboDisplay.style.opacity = '1';
-                setTimeout(() => comboDisplay.style.opacity = '0', 1000); 
+                setTimeout(() => { 
+                    if (comboCounter > 0) comboDisplay.style.opacity = '0.9'; // Держим, пока комбо активно
+                }, 500); 
             } else {
                 comboDisplay.textContent = '';
+                comboDisplay.style.opacity = '0';
             }
         }
 
         function generateNextShapes() {
+            // Перед генерацией проверяем, было ли комбо в предыдущем наборе
+            if (!canClearNextShapes && comboCounter > 0) {
+                 comboCounter = 0; // Сброс комбо, если новый набор не смог очистить
+                 updateComboDisplay(0);
+            }
+            canClearNextShapes = false; // Сброс флага для нового набора
+            
             currentShapes = [];
             nextBlocksElement.innerHTML = '';
 
@@ -428,7 +412,7 @@
                     
                     if (shapeData.pattern[r][c] === 1) {
                         block.style.backgroundColor = shapeData.color;
-                        block.dataset.r = r; // Сохраняем координаты блока относительно фигуры
+                        block.dataset.r = r; 
                         block.dataset.c = c;
                     } else {
                         block.style.visibility = 'hidden'; 
@@ -451,17 +435,23 @@
             draggedShapeIndex = parseInt(container.dataset.shapeIndex);
             event.dataTransfer.setData('text/plain', draggedShapeIndex); 
 
-            // Определяем, какой именно блок (из всех блоков фигуры) находится под курсором
+            // Определяем смещение (dragOffset):
             const targetBlock = event.target.closest('.block');
             if (targetBlock && targetBlock.dataset.r !== undefined) {
-                // dragOffset: смещение от начала фигуры (0,0) до блока, который схватили
                 dragOffset.row = parseInt(targetBlock.dataset.r);
                 dragOffset.col = parseInt(targetBlock.dataset.c);
             } else {
-                dragOffset = { row: 0, col: 0 }; // Если схватили фон, ставим смещение в (0,0)
+                // Если схватили фон контейнера, используем (0,0) - верхний левый блок
+                const firstBlock = container.querySelector('.block[data-r][data-c]');
+                if (firstBlock) {
+                    dragOffset.row = parseInt(firstBlock.dataset.r);
+                    dragOffset.col = parseInt(firstBlock.dataset.c);
+                } else {
+                    dragOffset = { row: 0, col: 0 };
+                }
             }
             
-            // Скрываем "бокс-призрак" при перетаскивании
+            // Скрываем "бокс-призрак"
             const img = new Image();
             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             event.dataTransfer.setDragImage(img, 0, 0);
@@ -483,12 +473,10 @@
             const targetCell = event.target.closest('.cell');
             if (!targetCell) return;
             
-            // Определяем КЛЕТКУ на сетке, над которой находится курсор
             const cellRow = parseInt(targetCell.dataset.row);
             const cellCol = parseInt(targetCell.dataset.col);
             
-            // Вычисляем НОВОЕ начало фигуры:
-            // (Клетка под курсором) - (Смещение схваченного блока)
+            // Вычисляем НОВОЕ начало фигуры: (Клетка под курсором) - (Смещение схваченного блока)
             const startRow = cellRow - dragOffset.row;
             const startCol = cellCol - dragOffset.col;
             
@@ -497,7 +485,6 @@
             
             const canPlace = canPlaceShape(shapeData.pattern, startRow, startCol);
             
-            // Подсветка 
             const highlightColor = canPlace ? shapeData.color : '#e74c3c'; 
             highlightCells(shapeData.pattern, startRow, startCol, highlightColor, canPlace);
         }
@@ -520,7 +507,6 @@
             const cellRow = parseInt(targetCell.dataset.row);
             const cellCol = parseInt(targetCell.dataset.col);
             
-            // Вычисляем точку размещения с учетом смещения
             const startRow = cellRow - dragOffset.row;
             const startCol = cellCol - dragOffset.col;
             
@@ -535,11 +521,10 @@
                 currentShapes[shapeIndex] = null; 
                 document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`).remove();
                 
-                checkAndClearLines(); // Проверка на очистку и комбо
+                const linesCleared = checkAndClearLines(); // Получаем количество очисток
                 
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes(); 
-                    updateComboDisplay(0); // Сброс комбо при смене фигур
                 }
                 
                 if (isGameOver()) {
@@ -547,7 +532,7 @@
                     initializeGame(); 
                 }
             } else {
-                updateComboDisplay(0); // Сброс комбо при неудачной попытке
+                 // Не сбрасываем комбо, если не смогли поставить фигуру (только при смене фигур)
             }
         }
 
@@ -564,7 +549,6 @@
             }
         }
         
-        // Передаем canPlace, чтобы подсветить красным, если нельзя ставить
         function highlightCells(pattern, startRow, startCol, color, isPossible) {
             clearHighlight(); 
             
@@ -579,7 +563,6 @@
                         const boardR = startRow + r;
                         const boardC = startCol + c;
                         
-                        // Проверяем, что клетка находится на поле
                         if (boardR >= 0 && boardR < BOARD_SIZE && boardC >= 0 && boardC < BOARD_SIZE) {
                             const cell = document.getElementById(`cell-${boardR}-${boardC}`);
                             if (cell && gameBoard[boardR][boardC] === EMPTY_COLOR) {
@@ -587,7 +570,6 @@
                                 cell.style.opacity = '0.5'; 
                                 lastHighlightedCells.push(cell); 
                             } else if (cell && gameBoard[boardR][boardC] !== EMPTY_COLOR && !isPossible) {
-                                // Подсвечиваем красным занятую ячейку
                                 cell.style.outline = '2px solid #e74c3c';
                                 lastHighlightedCells.push(cell);
                             }
@@ -606,7 +588,7 @@
                     cell.style.backgroundColor = EMPTY_COLOR; 
                 }
                 cell.style.opacity = '1';
-                cell.style.outline = 'none'; // Удаляем красную рамку
+                cell.style.outline = 'none';
             });
             lastHighlightedCells = [];
         }
@@ -622,12 +604,10 @@
                         const boardR = startRow + r;
                         const boardC = startCol + c;
                         
-                        // 1. Проверка границ поля (включая отрицательные)
                         if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) {
                             return false; 
                         }
                         
-                        // 2. Проверка занятости ячейки
                         if (gameBoard[boardR][boardC] !== EMPTY_COLOR) {
                             return false; 
                         }
@@ -640,12 +620,10 @@
         function placeShape(shapeData, startRow, startCol) {
             const pattern = shapeData.pattern;
             const color = shapeData.color;
-            const rows = pattern.length;
-            const cols = pattern[0].length;
             let blocksPlaced = 0;
 
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < pattern.length; r++) {
+                for (let c = 0; c < pattern[0].length; c++) {
                     if (pattern[r][c] === 1) {
                         const boardR = startRow + r;
                         const boardC = startCol + c;
@@ -667,7 +645,7 @@
             let clearedLinesCount = 0;
             const cellsToClear = new Set();
             
-            // 1. Проверка строк и столбцов (логика та же, но для 8x8)
+            // Проверка строк и столбцов
             for (let r = 0; r < BOARD_SIZE; r++) {
                 if (gameBoard[r].every(color => color !== EMPTY_COLOR)) {
                     clearedLinesCount++;
@@ -689,16 +667,16 @@
                 }
             }
             
-            // 2. Анимация, очистка и подсчет очков
             if (clearedLinesCount > 0) {
                 // Комбо: +1 к счетчику комбо
                 updateComboDisplay(clearedLinesCount);
 
                 let bonus = 0;
                 if (comboCounter > 1) {
-                    bonus = comboCounter * 5; // Бонус за комбо
+                    // Бонусные очки за комбо: (количество очищенных клеток) * (комбо-счетчик - 1)
+                    bonus = cellsToClear.size * (comboCounter - 1); 
                 }
-                // Начисление базовых очков + очков за количество очищенных клеток + комбо
+                
                 const totalPoints = cellsToClear.size + bonus; 
                 updateScore(totalPoints); 
 
@@ -707,7 +685,6 @@
                     
                     cell.classList.add('clearing');
                     
-                    // Очищаем поле и DOM после завершения анимации
                     setTimeout(() => {
                         gameBoard[r][c] = EMPTY_COLOR;
                         cell.style.backgroundColor = EMPTY_COLOR;
@@ -715,11 +692,14 @@
                         cell.classList.remove('clearing'); 
                         cell.style.transform = 'scale(1)';
                         cell.style.opacity = '1';         
-                    }, 400); // Длительность анимации
+                    }, 400); 
                 });
             } else {
-                 updateComboDisplay(0); // Сброс комбо, если очистки не было
+                 // Если нет очистки, комбо не сбрасывается сразу, а только при смене фигур
+                 updateComboDisplay(0); 
             }
+            
+            return clearedLinesCount;
         }
         
         function isShapeImpossible(shapeData) {
@@ -727,20 +707,17 @@
              
              const pattern = shapeData.pattern;
              
-             // Ищем место, учитывая все возможные "схватывания" (смещения)
+             // Проверка на возможность размещения с учетом всех точек захвата
              for(let offsetR = 0; offsetR < pattern.length; offsetR++) {
                  for(let offsetC = 0; offsetC < pattern[0].length; offsetC++) {
-                     // Только если в этой точке фигуры есть блок
                      if (pattern[offsetR][offsetC] === 1) {
-                         // Проверяем все клетки сетки как возможные точки "постановки курсора"
                          for (let r = 0; r < BOARD_SIZE; r++) {
                              for (let c = 0; c < BOARD_SIZE; c++) {
-                                 // Рассчитываем верхний левый угол фигуры: (Клетка курсора) - (смещение блока)
                                  const startR = r - offsetR;
                                  const startC = c - offsetC;
                                  
                                  if (canPlaceShape(pattern, startR, startC)) {
-                                     return false; // Найдено место
+                                     return false; 
                                  }
                              }
                          }
