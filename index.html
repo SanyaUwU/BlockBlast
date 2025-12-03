@@ -178,7 +178,7 @@ height: 75px;
 transition: box-shadow 0.2s, opacity 0.2s;
         }
         
-        /* УДАЛЕН CSS для .is-dragging (Фикс: фигуры больше не исчезают при клике) */
+        /* УДАЛЕННЫЙ СТИЛЬ: .shape-container.is-dragging */
         
         /* Подсветка фигуры, когда она является целью ИИ */
         .shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1;
@@ -201,7 +201,7 @@ transition: box-shadow 0.2s, opacity 0.2s;
 height: 22px;
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
-/* ФИКС ДЛЯ ПЕРЕТАСКИВАНИЯ */
+/* ФИКС ДЛЯ ПЕРЕТАСКИВАНИЯ (pointer-events: none) */
             pointer-events: none;
 }
         
@@ -602,8 +602,7 @@ Z
             { size: 9, color: '#ff6b81', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
 // === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
-        // !!!
-ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
+        // !!! ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
         const firebaseConfig = {
             apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
             authDomain: "block-blast-leader.firebaseapp.com",
