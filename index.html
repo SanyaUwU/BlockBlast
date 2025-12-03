@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Block Blast Game</title>
     
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Анимация градиента для фона */
+        /* Анимация градиента (Черно-белый) */
         @keyframes background-animation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -15,59 +17,75 @@
 
         /* Общие стили */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif; /* Красивый шрифт */
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 20px;
+            padding: 30px;
             transition: background-color 0.3s, color 0.3s;
             
-            /* Анимированный градиентный фон */
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            /* Черно-белый анимированный градиент */
+            background: linear-gradient(-45deg, #2c3e50, #34495e, #7f8c8d, #34495e);
             background-size: 400% 400%;
             animation: background-animation 15s ease infinite;
+            color: #ecf0f1;
         }
 
         .game-container {
             background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 15px; /* Более красивые углы */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Глубокая тень */
             text-align: center;
-            max-width: 300px; 
+            max-width: 320px; /* Немного увеличен для лучшего вида */
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         h1 {
+            font-weight: 700;
             color: #6c5ce7;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             transition: color 0.3s;
+            margin-top: 0;
+            margin-bottom: 15px;
         }
 
         /* Комбо дисплей */
         #combo-display {
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(230, 126, 34, 0.5);
+            font-weight: 600;
+            text-shadow: 0 0 8px rgba(230, 126, 34, 0.8);
+            letter-spacing: 1px;
             transition: opacity 0.5s;
+        }
+        
+        /* Стили для панели счета */
+        .score-panel {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
         }
 
         /* Кнопки в шапке */
         .header-buttons {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         /* Сетка */
         #game-board {
-            width: 240px; 
-            height: 240px;
+            width: 256px; /* 8 клеток * 32px каждая */
+            height: 256px;
             display: grid;
             grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
-            border: 5px solid #6c5ce7;
+            border: 6px solid #6c5ce7; /* Толще рамка */
+            border-radius: 8px; /* Скругление рамки */
             background-color: #dfe6e9; 
-            margin: 0 auto 20px auto;
+            margin: 0 auto 25px auto;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
             transition: border-color 0.3s, background-color 0.3s;
         }
 
@@ -81,7 +99,7 @@
         
         .filled {
             border: none;
-            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* Более заметный блок */
             opacity: 1 !important; 
         }
         
@@ -91,64 +109,55 @@
         }
 
         @keyframes rainbow-fade {
-            0% { background-color: #ff0000; transform: scale(1); opacity: 1; }
-            20% { background-color: #ff7f00; }
-            40% { background-color: #ffff00; }
-            60% { background-color: #00ff00; }
-            80% { background-color: #0000ff; transform: scale(0.8); }
-            100% { background-color: #4b0082; transform: scale(0); opacity: 0; }
+            0% { background-color: #ff0084; transform: scale(1); opacity: 1; }
+            50% { background-color: #3300ff; }
+            100% { background-color: #00ff00; transform: scale(0); opacity: 0; }
         }
 
         /* Панель Фигур */
         .next-blocks-panel {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: 10px;
             background-color: #f8f8f8;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
             transition: background-color 0.3s, border-color 0.3s;
         }
 
-        #next-blocks {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            min-height: 100px;
-        }
-
         .shape-container {
-            width: 70px;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 75px; /* Немного увеличен для лучшего вида */
+            height: 75px;
             cursor: grab; 
             border: 2px solid transparent;
-            border-radius: 5px;
+            border-radius: 8px;
             transition: border-color 0.2s, opacity 0.2s;
         }
         
-        .shape {
-            display: grid;
-        }
-
         .block {
-            width: 20px; 
-            height: 20px;
-            border: 1px solid #000;
+            width: 22px; /* Чуть больше блоки */
+            height: 22px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
         }
 
         /* Кнопки */
         .game-button {
-            padding: 8px 12px;
-            font-size: 0.9em;
+            padding: 10px 15px;
+            font-size: 1em;
             cursor: pointer;
             border: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
+            border-radius: 8px; /* Скругленные кнопки */
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
             color: white;
-            margin: 5px;
+            margin: 0 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         #reset-button { background-color: #6c5ce7; }
@@ -159,13 +168,12 @@
         /* === ТЕМНАЯ ТЕМА === */
         .dark-mode .game-container {
             background-color: #34495e; 
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
         }
         
-        .dark-mode h1 { color: #8e44ad; }
         .dark-mode .score-panel { color: #ecf0f1; }
         .dark-mode #game-board {
-            border: 5px solid #8e44ad;
+            border: 6px solid #8e44ad;
             background-color: #4a637d; 
         }
         .dark-mode .cell { border: 1px solid #7f8c8d; }
@@ -177,56 +185,46 @@
         .dark-mode .modal-content {
             background-color: #3f556d;
             color: #ecf0f1;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
         }
         .dark-mode .close-button { color: #ccc; }
-        .dark-mode .close-button:hover,
-        .dark-mode .close-button:focus { color: #fff; }
+        .dark-mode .close-button:hover { color: #fff; }
 
         /* Модальное окно */
         .modal {
-            display: none; position: fixed; z-index: 1; left: 0; top: 0;
-            width: 100%; height: 100%; overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background-color: rgba(0,0,0,0.6);
         }
 
         .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto; padding: 20px; border: 1px solid #888;
-            width: 80%; max-width: 300px; border-radius: 10px; text-align: left;
-            transition: background-color 0.3s;
+            padding: 30px; /* Увеличенный отступ */
+            border-radius: 15px;
+            border: none;
         }
 
-        .close-button {
-            color: #aaa; float: right; font-size: 28px; font-weight: bold;
-        }
-
-        .close-button:hover, .close-button:focus {
-            color: #000; text-decoration: none; cursor: pointer;
-        }
-        
         /* === СТИЛЬ КОПИРАЙТА === */
         .sanwec-credit {
-            font-family: 'Georgia', serif;
-            font-size: 1.1em;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.2em;
             text-align: center;
-            margin-top: 20px;
-            background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00);
-            background-size: 200% auto;
+            margin-top: 30px;
+            background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00, #ff0084);
+            background-size: 400% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: text-flow 3s ease infinite;
+            animation: text-flow 4s linear infinite;
         }
         
         @keyframes text-flow {
             to {
-                background-position: 200% center;
+                background-position: 400% center;
             }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>Block Blast 💥</h1>
+        <h1>BLOCK BLAST</h1>
         
         <div class="header-buttons">
             <button id="reset-button" class="game-button">Начать заново</button>
@@ -251,11 +249,11 @@
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>Настройки</h2>
-            <hr>
-            <p>
+            <h2>Настройки Игры</h2>
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
+            <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">
                 Тема оформления:
-                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 0;">Сменить тему</button>
+                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0;">Сменить тему</button>
             </p>
             
             <div class="sanwec-credit">By: Sanwec</div>
@@ -273,7 +271,7 @@
         let currentShapes = []; 
         let draggedShapeIndex = -1; 
         let dragOffset = { row: 0, col: 0 }; 
-        let canClearNextShapes = false; // Флаг для механики комбо
+        let canClearNextShapes = false; 
 
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
@@ -304,7 +302,7 @@
         ];
 
 
-        // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОТРИСОВКИ ---
+        // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОБРАБОТЧИКИ UI ---
 
         function initializeGame() {
             gameBoard = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
@@ -330,7 +328,7 @@
             
             score = 0;
             comboCounter = 0;
-            canClearNextShapes = false; // Сброс флага
+            canClearNextShapes = false; 
             updateScore();
             updateComboDisplay(0);
             generateNextShapes();
@@ -345,6 +343,16 @@
             }
         }
 
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
         function updateScore(points = 0) {
             score += points;
             scoreElement.textContent = score;
@@ -353,15 +361,14 @@
         function updateComboDisplay(linesCleared = 0) {
             if (linesCleared > 0) {
                 comboCounter++;
-                canClearNextShapes = true; // Установка флага
+                canClearNextShapes = true; 
             } 
             
             if (comboCounter > 1) {
                 comboDisplay.textContent = `COMBO x${comboCounter}!`;
                 comboDisplay.style.opacity = '1';
-                setTimeout(() => { 
-                    if (comboCounter > 0) comboDisplay.style.opacity = '0.9'; // Держим, пока комбо активно
-                }, 500); 
+                // Держим, пока комбо активно
+                setTimeout(() => { if (comboCounter > 0) comboDisplay.style.opacity = '0.9'; }, 500); 
             } else {
                 comboDisplay.textContent = '';
                 comboDisplay.style.opacity = '0';
@@ -369,9 +376,9 @@
         }
 
         function generateNextShapes() {
-            // Перед генерацией проверяем, было ли комбо в предыдущем наборе
-            if (!canClearNextShapes && comboCounter > 0) {
-                 comboCounter = 0; // Сброс комбо, если новый набор не смог очистить
+            // Механика сброса комбо: если новый набор не смог очистить линии
+            if (currentShapes.length > 0 && currentShapes.every(shape => shape === null) && !canClearNextShapes && comboCounter > 0) {
+                 comboCounter = 0; 
                  updateComboDisplay(0);
             }
             canClearNextShapes = false; // Сброс флага для нового набора
@@ -437,18 +444,26 @@
 
             // Определяем смещение (dragOffset):
             const targetBlock = event.target.closest('.block');
+            
             if (targetBlock && targetBlock.dataset.r !== undefined) {
+                // Если клик был по блоку, используем его координаты относительно фигуры
                 dragOffset.row = parseInt(targetBlock.dataset.r);
                 dragOffset.col = parseInt(targetBlock.dataset.c);
             } else {
-                // Если схватили фон контейнера, используем (0,0) - верхний левый блок
-                const firstBlock = container.querySelector('.block[data-r][data-c]');
-                if (firstBlock) {
-                    dragOffset.row = parseInt(firstBlock.dataset.r);
-                    dragOffset.col = parseInt(firstBlock.dataset.c);
-                } else {
-                    dragOffset = { row: 0, col: 0 };
+                 // Если клик был по фону, ищем ближайший активный блок
+                const shapeData = currentShapes[draggedShapeIndex];
+                if (shapeData) {
+                    for (let r = 0; r < shapeData.pattern.length; r++) {
+                        for (let c = 0; c < shapeData.pattern[0].length; c++) {
+                            if (shapeData.pattern[r][c] === 1) {
+                                dragOffset.row = r;
+                                dragOffset.col = c;
+                                return;
+                            }
+                        }
+                    }
                 }
+                dragOffset = { row: 0, col: 0 };
             }
             
             // Скрываем "бокс-призрак"
@@ -521,7 +536,7 @@
                 currentShapes[shapeIndex] = null; 
                 document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`).remove();
                 
-                const linesCleared = checkAndClearLines(); // Получаем количество очисток
+                const linesCleared = checkAndClearLines();
                 
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes(); 
@@ -531,23 +546,11 @@
                     alert(`Игра окончена! Ваш счет: ${score}`);
                     initializeGame(); 
                 }
-            } else {
-                 // Не сбрасываем комбо, если не смогли поставить фигуру (только при смене фигур)
-            }
+            } 
         }
 
 
         // --- ОСНОВНАЯ ИГРОВАЯ ЛОГИКА ---
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-        }
         
         function highlightCells(pattern, startRow, startCol, color, isPossible) {
             clearHighlight(); 
@@ -640,7 +643,6 @@
             updateScore(blocksPlaced); 
         }
 
-        /** Проверяет, очищает линии и начисляет очки/комбо */
         function checkAndClearLines() {
             let clearedLinesCount = 0;
             const cellsToClear = new Set();
@@ -668,12 +670,10 @@
             }
             
             if (clearedLinesCount > 0) {
-                // Комбо: +1 к счетчику комбо
                 updateComboDisplay(clearedLinesCount);
 
                 let bonus = 0;
                 if (comboCounter > 1) {
-                    // Бонусные очки за комбо: (количество очищенных клеток) * (комбо-счетчик - 1)
                     bonus = cellsToClear.size * (comboCounter - 1); 
                 }
                 
@@ -695,8 +695,7 @@
                     }, 400); 
                 });
             } else {
-                 // Если нет очистки, комбо не сбрасывается сразу, а только при смене фигур
-                 updateComboDisplay(0); 
+                 updateComboDisplay(0); // Сброс комбо
             }
             
             return clearedLinesCount;
@@ -707,7 +706,6 @@
              
              const pattern = shapeData.pattern;
              
-             // Проверка на возможность размещения с учетом всех точек захвата
              for(let offsetR = 0; offsetR < pattern.length; offsetR++) {
                  for(let offsetC = 0; offsetC < pattern[0].length; offsetC++) {
                      if (pattern[offsetR][offsetC] === 1) {
