@@ -35,10 +35,10 @@
         .game-container {
             background-color: #ffffff;
             padding: 25px;
-            border-radius: 15px; /* Более красивые углы */
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Глубокая тень */
+            border-radius: 15px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); 
             text-align: center;
-            max-width: 320px; /* Немного увеличен для лучшего вида */
+            max-width: 320px; 
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
@@ -76,13 +76,13 @@
 
         /* Сетка */
         #game-board {
-            width: 256px; /* 8 клеток * 32px каждая */
+            width: 256px; 
             height: 256px;
             display: grid;
             grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
-            border: 6px solid #6c5ce7; /* Толще рамка */
-            border-radius: 8px; /* Скругление рамки */
+            border: 6px solid #6c5ce7; 
+            border-radius: 8px; 
             background-color: #dfe6e9; 
             margin: 0 auto 25px auto;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
@@ -99,7 +99,7 @@
         
         .filled {
             border: none;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); /* Более заметный блок */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); 
             opacity: 1 !important; 
         }
         
@@ -140,11 +140,20 @@
             justify-content: center;
             align-items: center;
             cursor: grab; 
-            /* === ИСПРАВЛЕНО: УДАЛЯЕМ ВСЕ ФОНЫ И ТЕНИ ИЗ КОНТЕЙНЕРА === */
             background: none; 
             box-shadow: none;
             border-radius: 8px;
-            transition: border-color 0.2s, opacity 0.2s;
+            transition: box-shadow 0.2s, opacity 0.2s;
+        }
+        
+        /* === ИСПРАВЛЕНИЕ: Скрываем контейнер во время перетаскивания, чтобы убрать серый "призрак" === */
+        .shape-container.is-dragging {
+             opacity: 0.01; /* Почти невидимый, но остается в DOM для JS */
+             box-shadow: none;
+        }
+        
+        .shape-container[draggable="true"]:hover {
+             box-shadow: 0 0 0 2px #6c5ce7;
         }
         
         .shape {
@@ -158,19 +167,13 @@
             box-sizing: border-box;
         }
         
-        /* Добавляем рамку только при перетаскивании */
-        .shape-container[draggable="true"]:hover {
-             box-shadow: 0 0 0 2px #6c5ce7;
-        }
-
-
         /* Кнопки */
         .game-button {
             padding: 10px 15px;
             font-size: 1em;
             cursor: pointer;
             border: none;
-            border-radius: 8px; /* Скругленные кнопки */
+            border-radius: 8px; 
             font-weight: 600;
             transition: background-color 0.2s, transform 0.1s;
             color: white;
@@ -492,22 +495,26 @@
             draggedShapeIndex = parseInt(container.dataset.shapeIndex);
             event.dataTransfer.setData('text/plain', draggedShapeIndex); 
 
+            // === ИСПРАВЛЕНИЕ 1: Добавляем класс, чтобы скрыть "призрака" ===
+            container.classList.add('is-dragging');
+
             // Определяем смещение (dragOffset):
+            const shapeData = currentShapes[draggedShapeIndex];
             const targetBlock = event.target.closest('.block');
             
             if (targetBlock && targetBlock.dataset.r !== undefined) {
-                // Если клик был по блоку, используем его координаты относительно фигуры
+                // Если клик был по активному блоку, используем его координаты относительно фигуры
                 dragOffset.row = parseInt(targetBlock.dataset.r);
                 dragOffset.col = parseInt(targetBlock.dataset.c);
             } else {
-                 // Если клик был по фону, ищем ближайший активный блок
-                const shapeData = currentShapes[draggedShapeIndex];
+                 // Если клик был по контейнеру, ищем ближайший к верхнему левому углу активный блок
                 if (shapeData) {
                     for (let r = 0; r < shapeData.pattern.length; r++) {
                         for (let c = 0; c < shapeData.pattern[0].length; c++) {
                             if (shapeData.pattern[r][c] === 1) {
                                 dragOffset.row = r;
                                 dragOffset.col = c;
+                                // Используем первый найденный блок как точку отсчета
                                 return; 
                             }
                         }
@@ -516,10 +523,13 @@
                 dragOffset = { row: 0, col: 0 };
             }
             
-            // Скрываем "бокс-призрак"
+            // === ИСПРАВЛЕНИЕ 2: Использование прозрачного изображения для "призрака" ===
+            // Это помогает в некоторых браузерах окончательно убрать серый фон
             const img = new Image();
             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-            event.dataTransfer.setDragImage(img, 0, 0);
+            // Устанавливаем координаты смещения, чтобы курсор был ровно на схваченном блоке
+            const blockSize = 22; // Размер блока в пикселях (из CSS)
+            event.dataTransfer.setDragImage(img, dragOffset.col * blockSize, dragOffset.row * blockSize);
 
             container.style.opacity = '0.5';
         }
@@ -528,6 +538,8 @@
             const container = event.target.closest('.shape-container');
             if (container) {
                 container.style.opacity = '1';
+                // Убираем класс, который скрывал "призрака"
+                container.classList.remove('is-dragging'); 
             }
             clearHighlight();
         }
