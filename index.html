@@ -1114,10 +1114,23 @@
             }
         }
 
+        // --- ИСПРАВЛЕННАЯ ФУНКЦИЯ ---
         function clearHighlight() {
             lastHighlightedCells.forEach(cell => {
-                cell.style.backgroundColor = '';
-                cell.style.opacity = '';
+                // Если ячейка уже заполнена (т.е. на ней стоит фигура), 
+                // нужно восстановить ее постоянный цвет и сбросить только временную подсветку.
+                if (cell.classList.contains('filled')) {
+                    const r = parseInt(cell.dataset.row);
+                    const c = parseInt(cell.dataset.col);
+                    // Восстанавливаем цвет из массива игры (gameBoard)
+                    cell.style.backgroundColor = gameBoard[r][c];
+                    // Сбрасываем временный opacity
+                    cell.style.opacity = ''; 
+                } else {
+                    // Если ячейка была пустой, просто очищаем временные стили.
+                    cell.style.backgroundColor = '';
+                    cell.style.opacity = '';
+                }
             });
             // Удаляем подсветку ИИ
             document.querySelectorAll('.ai-highlight-0, .ai-highlight-1, .ai-highlight-2').forEach(cell => {
@@ -1125,6 +1138,7 @@
             });
             lastHighlightedCells = [];
         }
+        // --- КОНЕЦ ИСПРАВЛЕННОЙ ФУНКЦИИ ---
 
         function canPlaceShape(pattern, startRow, startCol) {
             const rows = pattern.length;
