@@ -125,11 +125,10 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
-        /* === ИСПРАВЛЕНИЕ: ВОССТАНОВЛЕНИЕ ЦЕНТРИРОВАНИЯ ФИГУР === */
         #next-blocks {
             display: flex;
             justify-content: space-around;
-            align-items: center; /* Центрирование по вертикали */
+            align-items: center; 
             padding: 10px 0;
             min-height: 100px;
         }
@@ -137,11 +136,13 @@
         .shape-container {
             width: 75px; 
             height: 75px;
-            display: flex; /* Для центрирования самой фигуры внутри контейнера */
+            display: flex; 
             justify-content: center;
             align-items: center;
             cursor: grab; 
-            border: 2px solid transparent;
+            /* === ИСПРАВЛЕНО: УДАЛЯЕМ ВСЕ ФОНЫ И ТЕНИ ИЗ КОНТЕЙНЕРА === */
+            background: none; 
+            box-shadow: none;
             border-radius: 8px;
             transition: border-color 0.2s, opacity 0.2s;
         }
@@ -156,6 +157,12 @@
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
         }
+        
+        /* Добавляем рамку только при перетаскивании */
+        .shape-container[draggable="true"]:hover {
+             box-shadow: 0 0 0 2px #6c5ce7;
+        }
+
 
         /* Кнопки */
         .game-button {
@@ -206,7 +213,7 @@
         .dark-mode .close-button { color: #ccc; }
         .dark-mode .close-button:hover { color: #fff; }
 
-        /* === СТИЛИ МОДАЛЬНОГО ОКНА (ИСПРАВЛЕНО) === */
+        /* === СТИЛИ МОДАЛЬНОГО ОКНА === */
         .modal {
             display: none; 
             position: fixed; 
