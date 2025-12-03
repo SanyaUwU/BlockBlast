@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast Game</title>
+    <title>BLOCK BLAST Adventure Master</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Анимация градиента (Яркий, мультяшный) */
+        /* Анимация градиента */
         @keyframes background-animation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -25,7 +25,7 @@
             padding: 30px;
             transition: background-color 0.3s, color 0.3s;
             
-            /* Яркий анимированный градиент (Вдохновлен фото) */
+            /* Яркий анимированный градиент */
             background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
             background-size: 400% 400%;
             animation: background-animation 20s ease infinite;
@@ -38,13 +38,13 @@
             border-radius: 15px; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); 
             text-align: center;
-            max-width: 320px; 
+            max-width: 380px; 
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         h1 {
             font-weight: 700;
-            color: #ff6b6b; /* Более яркий заголовок */
+            color: #ff6b6b; 
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             transition: color 0.3s;
             margin-top: 0;
@@ -60,6 +60,7 @@
             color: #e67e22;
             font-size: 1.1em;
             opacity: 0;
+            min-height: 1.2em;
         }
         
         /* Стили для панели счета */
@@ -74,6 +75,7 @@
             font-size: 0.9em;
             font-weight: 400;
             margin-top: 5px;
+            min-height: 1.1em;
         }
 
         /* Кнопки в шапке */
@@ -82,8 +84,9 @@
             justify-content: space-between;
             gap: 5px; 
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
-
+        
         /* Сетка */
         #game-board {
             width: 256px; 
@@ -114,16 +117,15 @@
         }
         
         /* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
-        /* Используем разные цвета для разных фигур ИИ, чтобы они не сливались */
-        .ai-highlight-0 { /* Первая фигура */
+        .ai-highlight-0 { 
             box-shadow: 0 0 8px 3px #1dd1a1 !important; 
             border: 2px solid #1dd1a1 !important;
         }
-        .ai-highlight-1 { /* Вторая фигура */
+        .ai-highlight-1 { 
             box-shadow: 0 0 8px 3px #54a0ff !important; 
             border: 2px solid #54a0ff !important;
         }
-        .ai-highlight-2 { /* Третья фигура */
+        .ai-highlight-2 { 
             box-shadow: 0 0 8px 3px #ff9f43 !important; 
             border: 2px solid #ff9f43 !important;
         }
@@ -231,44 +233,6 @@
             background-image: linear-gradient(to right, #00b894 0%, #00cec9 100%);
         }
 
-        /* === ТЕМНАЯ ТЕМА === */
-        .dark-mode .game-container {
-            background-color: #34495e; 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-        }
-        
-        .dark-mode .score-panel { color: #ecf0f1; }
-        .dark-mode #mode-info { color: #ccc !important; }
-        .dark-mode #game-board {
-            border: 6px solid #a29bfe;
-            background-color: #4a637d; 
-        }
-        .dark-mode .cell { border: 1px solid #7f8c8d; }
-        .dark-mode .block { border: 1px solid rgba(255, 255, 255, 0.5); }
-        .dark-mode .next-blocks-panel {
-            background-color: #3f556d;
-            border: 1px solid #5d6d7e;
-        }
-        .dark-mode .modal-content {
-            background-color: #3f556d;
-            color: #ecf0f1;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-        }
-        .dark-mode .close-button { color: #ccc; }
-        .dark-mode .close-button:hover { color: #fff; }
-        
-        /* Градиенты для кнопок в темной теме */
-        .dark-mode #reset-button { 
-            background-image: linear-gradient(to right, #5a4bcf 0%, #8e44ad 100%);
-        }
-        .dark-mode #settings-button { 
-            background-image: linear-gradient(to right, #d63031 0%, #b8307d 100%);
-        }
-        .dark-mode #mode-button { 
-            background-image: linear-gradient(to right, #009688 0%, #00695c 100%);
-        }
-
-
         /* === СТИЛИ МОДАЛЬНОГО ОКНА === */
         .modal {
             display: none; 
@@ -288,10 +252,11 @@
             padding: 30px;
             border: none;
             width: 80%; 
-            max-width: 300px;
+            max-width: 320px;
             border-radius: 15px;
             text-align: left;
             transition: background-color 0.3s;
+            color: #333;
         }
 
         .close-button {
@@ -325,16 +290,60 @@
             color: #333;
         }
 
-        .mode-selection-button:hover {
-            background-position: right center;
-        }
-
         .mode-selection-button.active {
             border-color: #6c5ce7;
             background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
             color: white;
             font-weight: 600;
         }
+        
+        /* Стили для таблицы лидеров */
+        #leaderboard-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        #leaderboard-list li {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            font-weight: 400;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #leaderboard-list li strong {
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin-right: 10px;
+        }
+        
+        /* === ТЕМНАЯ ТЕМА === (Адаптация для новых модальных окон) */
+        .dark-mode .game-container {
+            background-color: #34495e; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+        
+        .dark-mode .score-panel { color: #ecf0f1; }
+        .dark-mode #mode-info { color: #ccc !important; }
+        .dark-mode #game-board {
+            border: 6px solid #a29bfe;
+            background-color: #4a637d; 
+        }
+        .dark-mode .cell { border: 1px solid #7f8c8d; }
+        .dark-mode .block { border: 1px solid rgba(255, 255, 255, 0.5); }
+        .dark-mode .next-blocks-panel {
+            background-color: #3f556d;
+            border: 1px solid #5d6d7e;
+        }
+        
+        .dark-mode .modal-content {
+            background-color: #3f556d;
+            color: #ecf0f1;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+        .dark-mode .close-button { color: #ccc; }
+        .dark-mode .close-button:hover { color: #fff; }
         
         .dark-mode .mode-selection-button {
             background-image: linear-gradient(to right, #f7f7f7 0%, #f1f1f1 100%);
@@ -344,6 +353,10 @@
              border-color: #a29bfe;
              background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
              color: white;
+        }
+        .dark-mode #leaderboard-list li {
+             background-color: #4a637d;
+             color: #ecf0f1;
         }
 
 
@@ -373,9 +386,9 @@
         <h1>BLOCK BLAST</h1>
         
         <div class="header-buttons">
-            <button id="mode-button" class="game-button">Режимы 🎮</button>
+            <button id="auth-button" class="game-button" style="background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Вход/Регистрация</button>
+            <button id="leaderboard-button" class="game-button" style="background-image: linear-gradient(to right, #FF9800 0%, #FFC107 100%);">Лидеры 🏆</button>
             <button id="reset-button" class="game-button">Начать заново</button>
-            <button id="settings-button" class="game-button">Настройки ⚙️</button>
         </div>
 
         <div class="score-panel">
@@ -402,15 +415,51 @@
             
             <button class="mode-selection-button active" data-mode="normal">
                 **Обычный режим**
-                <br><span style="font-size: 0.8em; color: inherit;">Счет идет в будущий рейтинг.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">Счет идет в таблицу лидеров.</span>
             </button>
             
             <button class="mode-selection-button" data-mode="training">
                 **Тренировка с ИИ-подсказчиком** 🤖
-                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучшее место для всех 3 фигур. Счет не учитывается.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучший ход. Счет не учитывается.</span>
             </button>
         </div>
     </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="auth">&times;</span>
+            <h2 id="auth-title">Вход / Регистрация</h2>
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
+            
+            <form id="auth-form">
+                <div style="margin-bottom: 15px;">
+                    <label for="auth-email" style="font-weight: 600; display: block; margin-bottom: 5px;">Email:</label>
+                    <input type="email" id="auth-email" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="auth-password" style="font-weight: 600; display: block; margin-bottom: 5px;">Пароль:</label>
+                    <input type="password" id="auth-password" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
+                </div>
+                
+                <button type="submit" id="auth-submit-button" class="game-button" style="width: 100%; margin-bottom: 10px; background-image: linear-gradient(to right, #4CAF50 0%, #8BC34A 100%);">Войти</button>
+                
+                <button type="button" id="toggle-auth-button" class="game-button" style="width: 100%; background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Нужна регистрация?</button>
+            </form>
+            
+            <p id="auth-message" style="margin-top: 15px; font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="leaderboard">&times;</span>
+            <h2>Таблица Лидеров 🏆</h2>
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
+            <ol id="leaderboard-list"></ol>
+        </div>
+    </div>
+
 
     <div id="settings-modal" class="modal">
         <div class="modal-content">
@@ -426,6 +475,10 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
     <script>
         // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ ---
         const BOARD_SIZE = 8; 
@@ -443,7 +496,7 @@
         let currentShapes = []; 
         let draggedShapeIndex = -1; 
         let dragOffset = { row: 0, col: 0 }; 
-        let currentBestPlacements = []; // Для хранения лучших мест всех 3-х фигур
+        let currentBestPlacements = []; 
         
         // UI элементы
         const gameBoardElement = document.getElementById('game-board');
@@ -456,10 +509,28 @@
         
         const resetButton = document.getElementById('reset-button');
         const settingsButton = document.getElementById('settings-button');
-        const modeButton = document.getElementById('mode-button');
+        const modeButton = document.getElementById('mode-button'); 
         const themeToggleButton = document.getElementById('theme-toggle-button');
         const closeButtons = document.querySelectorAll('.close-button');
         const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
+        
+        // === FIREBASE И АУТЕНТИФИКАЦИЯ UI ЭЛЕМЕНТЫ ===
+        const authModal = document.getElementById('auth-modal');
+        const authForm = document.getElementById('auth-form');
+        const authEmailInput = document.getElementById('auth-email');
+        const authPasswordInput = document.getElementById('auth-password');
+        const authSubmitButton = document.getElementById('auth-submit-button');
+        const toggleAuthButton = document.getElementById('toggle-auth-button');
+        const authTitle = document.getElementById('auth-title');
+        const authMessage = document.getElementById('auth-message');
+        const authButton = document.getElementById('auth-button');
+        
+        const leaderboardButton = document.getElementById('leaderboard-button');
+        const leaderboardModal = document.getElementById('leaderboard-modal');
+        const leaderboardList = document.getElementById('leaderboard-list');
+
+        let isRegistering = false;
+        let currentUser = null; 
         
         // Определение фигур
         const SHAPES = [
@@ -494,6 +565,23 @@
         ];
 
 
+        // === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
+        // !!! ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
+            authDomain: "block-blast-leader.firebaseapp.com",
+            projectId: "block-blast-leader",
+            storageBucket: "block-blast-leader.firebasestorage.app",
+            messagingSenderId: "435353232888",
+            appId: "1:435353232888:web:79480b0345c0209e8d220d",
+            measurementId: "G-ZKCKX6NBKZ" 
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        
         // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОБРАБОТЧИКИ UI ---
 
         function initializeGame(mode = NORMAL_MODE) {
@@ -527,30 +615,35 @@
             updateComboDisplay(0);
             generateNextShapes();
             
+            // Обработчики кнопок
             resetButton.onclick = () => initializeGame(gameMode);
             settingsButton.onclick = () => settingsModal.style.display = 'block';
             modeButton.onclick = () => showModeModal();
             themeToggleButton.onclick = toggleTheme; 
+            leaderboardButton.onclick = fetchLeaderboard;
 
+            // Обработчики для закрытия модальных окон
             closeButtons.forEach(btn => {
                 btn.onclick = (e) => {
                     const modalType = e.target.dataset.modal;
                     if (modalType === 'settings') settingsModal.style.display = 'none';
                     if (modalType === 'mode') modeModal.style.display = 'none';
+                    if (modalType === 'auth') authModal.style.display = 'none';
+                    if (modalType === 'leaderboard') leaderboardModal.style.display = 'none';
                 };
             });
             
+            // Обработчики для выбора режима
             modeSelectionButtons.forEach(btn => {
                 btn.onclick = (e) => selectMode(e.currentTarget.dataset.mode);
             });
 
+            // Инициализация темной темы
             if (localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
             }
         }
         
-        // ... (showModeModal, selectMode, toggleTheme, updateScore) - без изменений ...
-
         function showModeModal() {
             modeSelectionButtons.forEach(btn => {
                 btn.classList.remove('active');
@@ -585,14 +678,11 @@
         
         function updateModeInfo() {
             if (gameMode === TRAINING_MODE) {
-                modeInfoElement.textContent = 'Тренировочный режим. Рейтинг не ведется.';
+                modeInfoElement.textContent = 'Тренировочный режим. Счет не ведется.';
                 modeInfoElement.style.color = '#e74c3c';
             } else {
-                 modeInfoElement.textContent = 'Обычный режим.';
-                 modeInfoElement.style.color = '#333';
-                 if (document.body.classList.contains('dark-mode')) {
-                    modeInfoElement.style.color = '#ecf0f1';
-                 }
+                 modeInfoElement.textContent = 'Обычный режим (Таблица лидеров).';
+                 modeInfoElement.style.color = document.body.classList.contains('dark-mode') ? '#ecf0f1' : '#333';
             }
         }
         
@@ -606,7 +696,7 @@
             let comboText = '';
             
             if (linesCleared >= 2) {
-                const lineMultiplier = Math.min(linesCleared, 5); // x2, x3, x4, x5
+                const lineMultiplier = Math.min(linesCleared, 5);
                 comboText = `x${lineMultiplier} Линии! `;
             }
             
@@ -738,7 +828,7 @@
             return container;
         }
         
-        // --- ЛОГИКА ИИ-ПОДСКАЗКИ (Обновлено) ---
+        // --- ЛОГИКА ИИ-ПОДСКАЗКИ ---
         
         function evaluateBoardState(board) {
             let occupiedCells = 0;
@@ -752,12 +842,11 @@
                 }
             }
             
-            // Простая эвристика для "будущего комбо": ищем, сколько почти полных линий осталось
-            // (например, линии с 7/8 блоков)
+            // Эвристика для "будущего комбо"
             for (let r = 0; r < BOARD_SIZE; r++) {
                 const filledInRow = board[r].filter(c => c !== EMPTY_COLOR).length;
                 if (filledInRow === BOARD_SIZE - 1) {
-                    potentialClears += 2; // Более высокий вес
+                    potentialClears += 2; 
                 } else if (filledInRow === BOARD_SIZE - 2) {
                     potentialClears += 1;
                 }
@@ -775,7 +864,7 @@
                 }
             }
 
-            // Чем больше свободных ячеек (64 - occupiedCells), тем лучше, но важнее линии
+            // Минимизация занятых ячеек и максимизация потенциала
             return (64 - occupiedCells) - potentialClears; 
         }
 
@@ -789,8 +878,6 @@
                 }
             }
 
-            let blocksPlaced = shapeBlocks.length;
-            
             // Создаем временную доску для оценки состояния ПОСЛЕ размещения фигуры
             const tempCells = JSON.parse(JSON.stringify(tempBoard));
             shapeBlocks.forEach(b => {
@@ -831,8 +918,8 @@
             
             const futureScore = evaluateBoardState(postClearBoard);
 
-            // Оценка: 
-            // 1. Количество очищенных линий (x10000)
+            // Оценка:
+            // 1. Количество очищенных линий (x10000) - самый важный фактор
             // 2. Количество очищенных ячеек (x100)
             // 3. Состояние доски (минимизация futureScore) (x-1)
             return (clearedLines * 10000) + (cellsToClear.size * 100) - futureScore;
@@ -878,7 +965,6 @@
             return bestPlacement;
         }
         
-        // Подсвечивает один лучший ход ИИ (используется при перетаскивании)
         function highlightAI(placement, shapeData, shapeIndex) {
             const pattern = shapeData.pattern;
             const color = shapeData.color;
@@ -891,7 +977,6 @@
                         
                         const cell = document.getElementById(`cell-${boardR}-${boardC}`);
                         if (cell) {
-                            // Применяем класс, зависящий от индекса, для разного цвета/тени
                             cell.classList.add(`ai-highlight-${shapeIndex}`); 
                             cell.style.backgroundColor = color;
                             cell.style.opacity = '0.6'; 
@@ -902,11 +987,9 @@
             }
         }
         
-        // Показывает подсветку для всех 3-х фигур
         function showAllAIHighlights() {
             clearHighlight();
             
-            // Убираем классы со всех контейнеров, затем добавляем нужные
             document.querySelectorAll('.shape-container').forEach(c => {
                  c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
@@ -916,10 +999,8 @@
                 
                 const placement = currentBestPlacements[index];
                 if (placement) {
-                    // Подсвечиваем ячейки на доске
                     highlightAI(placement, shapeData, index);
                     
-                    // Подсвечиваем контейнер фигур
                     const container = document.querySelector(`.shape-container[data-shape-index="${index}"]`);
                     if (container) {
                          container.classList.add(`ai-target-${index}`);
@@ -939,7 +1020,6 @@
 
             container.classList.add('is-dragging');
             
-            // Убираем AI-подсветку со всех фигур и доски
             document.querySelectorAll('.shape-container').forEach(c => {
                  c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
@@ -983,7 +1063,6 @@
             
             clearHighlight();
             
-            // Если режим TRAINING_MODE, восстанавливаем AI-подсветку на всех доступных фигурах
             if (gameMode === TRAINING_MODE) {
                 showAllAIHighlights();
             }
@@ -1009,7 +1088,6 @@
             
             const highlightColor = canPlace ? shapeData.color : '#e74c3c'; 
             
-            // Во время перетаскивания используем стандартную подсветку
             highlightCells(shapeData.pattern, startRow, startCol, highlightColor, canPlace);
         }
         
@@ -1050,13 +1128,12 @@
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes(); 
                 } else if (gameMode === TRAINING_MODE) {
-                    // Обновляем AI-подсветку, пересчитывая лучший ход для оставшихся
                     currentBestPlacements = currentShapes.map(shape => findBestPlacement(shape));
                     showAllAIHighlights();
                 }
                 
                 if (isGameOver()) {
-                    alert(`Игра окончена! Ваш счет: ${score}`);
+                    // isGameOver вызывает saveHighScore(score)
                     initializeGame(gameMode); 
                 }
             } 
@@ -1091,7 +1168,6 @@
                                 cell.style.outline = '2px solid #e74c3c';
                                 lastHighlightedCells.push(cell);
                             }
-                            // Убеждаемся, что AI-классы удалены
                             cell.classList.remove('ai-highlight-0', 'ai-highlight-1', 'ai-highlight-2');
                         }
                     }
@@ -1158,7 +1234,7 @@
                     }
                 }
             }
-            updateScore(blocksPlaced); // Базовые очки за поставленные блоки
+            updateScore(blocksPlaced); 
         }
 
         function checkAndClearLines() {
@@ -1190,10 +1266,10 @@
             if (clearedLinesCount > 0) {
                 // 1. Множитель за одновременное очищение линий (xN)
                 const lineMultiplier = Math.min(clearedLinesCount, 5);
-                let linePoints = cellsToClear.size * lineMultiplier;
+                let linePoints = cellsToClear.size * lineMultiplier * 10; 
                 
                 // 2. Множитель за последовательное комбо (xCombo)
-                const totalMultiplier = comboCounter > 0 ? comboCounter : 1;
+                const totalMultiplier = comboCounter > 0 ? comboCounter : 1; 
                 let bonusPoints = linePoints * totalMultiplier;
                 
                 updateScore(bonusPoints); 
@@ -1256,7 +1332,149 @@
             
             if (remainingShapes.length === 0) return false;
 
-            return remainingShapes.every(isShapeImpossible);
+            if (remainingShapes.every(isShapeImpossible)) {
+                 alert(`Игра окончена! Ваш финальный счет: ${score}`);
+                 if (gameMode === NORMAL_MODE) {
+                     saveHighScore(score); 
+                 }
+                 return true; 
+            }
+            return false;
+        }
+
+        // === 2. ФУНКЦИИ FIREBASE/АУТЕНТИФИКАЦИИ ===
+        
+        function updateAuthUI(user) {
+            currentUser = user;
+            if (user) {
+                // Вход выполнен
+                const emailPrefix = user.email.split('@')[0];
+                authButton.textContent = `Выйти (${emailPrefix})`;
+                authButton.onclick = handleLogout;
+            } else {
+                // Выход выполнен
+                authButton.textContent = 'Вход/Регистрация';
+                authButton.onclick = () => authModal.style.display = 'block';
+            }
+        }
+        
+        // Подписка на изменение состояния аутентификации
+        auth.onAuthStateChanged(updateAuthUI);
+
+        function handleLogout() {
+            auth.signOut().then(() => {
+                alert("Вы успешно вышли из аккаунта.");
+            }).catch((error) => {
+                console.error("Ошибка выхода:", error);
+            });
+        }
+
+        // Переключение между Входом и Регистрацией
+        toggleAuthButton.onclick = () => {
+            isRegistering = !isRegistering;
+            authTitle.textContent = isRegistering ? 'Регистрация' : 'Вход';
+            authSubmitButton.textContent = isRegistering ? 'Зарегистрироваться' : 'Войти';
+            toggleAuthButton.textContent = isRegistering ? 'Уже есть аккаунт? Войти' : 'Нужна регистрация?';
+            authMessage.textContent = '';
+        };
+
+        authForm.onsubmit = async (e) => {
+            e.preventDefault();
+            authMessage.textContent = '';
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+            
+            try {
+                if (isRegistering) {
+                    // РЕГИСТРАЦИЯ
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    // Сохранение записи в Firestore с начальным счетом
+                    await db.collection("users").doc(userCredential.user.uid).set({
+                        email: email,
+                        highScore: 0,
+                        lastPlayed: new Date()
+                    });
+                    alert('Регистрация успешна! Вы вошли в систему.');
+                } else {
+                    // ВХОД
+                    await auth.signInWithEmailAndPassword(email, password);
+                    alert('Вход успешен!');
+                }
+                authModal.style.display = 'none';
+            } catch (error) {
+                console.error(error);
+                authMessage.textContent = `Ошибка: ${error.message.replace('Firebase: ', '')}`;
+            }
+        };
+
+        async function saveHighScore(finalScore) {
+            if (!currentUser) {
+                alert("Вы не вошли в систему. Войдите, чтобы сохранить ваш рекорд!");
+                return;
+            }
+            
+            const userId = currentUser.uid;
+            const userRef = db.collection("users").doc(userId);
+            
+            try {
+                // Использование транзакции для безопасного обновления
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+
+                    if (!doc.exists) {
+                        throw "Документ пользователя не найден! (Регистрация не завершена)";
+                    }
+
+                    const currentHighScore = doc.data().highScore || 0;
+                    
+                    if (finalScore > currentHighScore) {
+                        transaction.update(userRef, { 
+                            highScore: finalScore,
+                            lastPlayed: new Date()
+                        });
+                        alert(`Новый Рекорд! Счет ${finalScore} сохранен.`);
+                    } else {
+                        console.log(`Счет ${finalScore} не превысил текущий рекорд ${currentHighScore}.`);
+                    }
+                });
+            } catch (error) {
+                console.error("Ошибка транзакции сохранения счета: ", error);
+                alert("Не удалось сохранить счет. Проверьте соединение или правила Firestore.");
+            }
+        }
+        
+        async function fetchLeaderboard() {
+            leaderboardModal.style.display = 'block';
+            leaderboardList.innerHTML = '<li>Загрузка...</li>';
+            
+            try {
+                // Запрашиваем 10 лучших результатов
+                const snapshot = await db.collection("users")
+                    .orderBy("highScore", "desc")
+                    .limit(10)
+                    .get();
+                
+                leaderboardList.innerHTML = ''; 
+                let rank = 1;
+                
+                if (snapshot.empty) {
+                    leaderboardList.innerHTML = '<li>Таблица лидеров пуста. Будьте первым!</li>';
+                } else {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const emailPrefix = data.email ? data.email.split('@')[0] : 'Anon';
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <strong>#${rank}</strong> ${emailPrefix}: <span>${data.highScore} очков</span>
+                        `;
+                        leaderboardList.appendChild(li);
+                        rank++;
+                    });
+                }
+            } catch (error) {
+                console.error("Ошибка загрузки таблицы лидеров:", error);
+                leaderboardList.innerHTML = '<li>Не удалось загрузить таблицу. Проверьте соединение и правила Firestore.</li>';
+            }
         }
 
         // --- ЗАПУСК ИГРЫ ---
