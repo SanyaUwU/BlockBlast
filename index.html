@@ -6,7 +6,7 @@
     <title>Block Blast Game</title>
     
     <style>
-        /* Общие стили для центрирования и фона */
+        /* Общие стили */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -15,6 +15,7 @@
             min-height: 100vh;
             background-color: #f0f0f0;
             padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .game-container {
@@ -23,11 +24,13 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 340px; /* Ограничиваем ширину контейнера */
+            max-width: 340px;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         h1 {
             color: #6c5ce7;
+            transition: color 0.3s;
         }
 
         /* Стили для панели счета */
@@ -46,8 +49,9 @@
             grid-template-columns: repeat(10, 1fr); 
             grid-template-rows: repeat(10, 1fr);   
             border: 5px solid #6c5ce7;
-            background-color: #dfe6e9; /* Цвет фона пустых клеток */
+            background-color: #dfe6e9; 
             margin-bottom: 20px;
+            transition: border-color 0.3s, background-color 0.3s;
         }
 
         /* Стили для отдельной ячейки сетки */
@@ -55,16 +59,31 @@
             width: 100%;
             height: 100%;
             box-sizing: border-box;
-            border: 1px solid #b2bec3; /* Легкая граница для сетки */
-            /* Цвет пустой клетки берется от #game-board */
-            transition: background-color 0.1s, opacity 0.1s;
+            border: 1px solid #b2bec3; 
+            transition: background-color 0.1s, opacity 0.1s, transform 0.1s;
         }
         
         /* Стили для заполненной ячейки */
         .filled {
             border: none;
             box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-            opacity: 1 !important; /* Убедимся, что заполненные блоки не полупрозрачны */
+            opacity: 1 !important; 
+        }
+        
+        /* Анимация исчезновения для очистки линий */
+        .clearing {
+            animation: shrink-fade 0.3s ease-in-out forwards;
+        }
+
+        @keyframes shrink-fade {
+            0% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: scale(0); 
+                opacity: 0; 
+            }
         }
 
         /* Стили для Панели Следующих Фигур */
@@ -74,13 +93,14 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             background-color: #f8f8f8;
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         #next-blocks {
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            min-height: 100px; /* Чтобы панель не схлопывалась после использования фигур */
+            min-height: 100px;
         }
 
         /* Стили для контейнера одной фигуры внизу */
@@ -93,17 +113,15 @@
             cursor: grab; 
             border: 2px solid transparent;
             border-radius: 5px;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, opacity 0.2s;
         }
         
         .shape-container:hover {
             border-color: #6c5ce7;
         }
 
-        /* Стили для самой фигуры */
         .shape {
             display: grid;
-            /* grid-template-columns задается JS */
         }
 
         .block {
@@ -113,21 +131,70 @@
             box-sizing: border-box;
         }
 
-        /* Кнопка */
-        #reset-button {
+        /* Кнопки */
+        #reset-button, #theme-toggle-button {
             padding: 10px 20px;
             font-size: 1em;
             cursor: pointer;
-            background-color: #6c5ce7;
-            color: white;
             border: none;
             border-radius: 5px;
             margin-top: 20px;
             transition: background-color 0.2s;
+            color: white;
+        }
+        
+        #reset-button {
+            background-color: #6c5ce7;
         }
 
         #reset-button:hover {
             background-color: #5a4bcf;
+        }
+
+        #theme-toggle-button {
+            background-color: #e84393;
+            margin-left: 10px; 
+        }
+
+        #theme-toggle-button:hover {
+            background-color: #c7297e;
+        }
+
+        /* === ТЕМНАЯ ТЕМА === */
+        .dark-mode {
+            background-color: #2c3e50; 
+            color: #ecf0f1; 
+        }
+
+        .dark-mode .game-container {
+            background-color: #34495e; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .dark-mode h1 {
+            color: #8e44ad; 
+        }
+
+        .dark-mode .score-panel {
+            color: #ecf0f1;
+        }
+
+        .dark-mode #game-board {
+            border: 5px solid #8e44ad;
+            background-color: #4a637d; 
+        }
+
+        .dark-mode .cell {
+            border: 1px solid #7f8c8d; 
+        }
+        
+        .dark-mode .block {
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark-mode .next-blocks-panel {
+            background-color: #3f556d;
+            border: 1px solid #5d6d7e;
         }
     </style>
 </head>
@@ -148,6 +215,7 @@
         </div>
 
         <button id="reset-button">Начать заново</button>
+        <button id="theme-toggle-button">Сменить тему</button>
     </div>
 
     <script>
@@ -156,7 +224,7 @@
         const EMPTY_COLOR = ''; 
         let score = 0;
         let gameBoard = []; 
-        let lastHighlightedCells = []; // Для хранения последних подсвеченных ячеек
+        let lastHighlightedCells = []; 
 
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
@@ -165,35 +233,24 @@
 
         // Определение фигур и их цветов (в формате Block Blast)
         const SHAPES = [
-            // 1-блочные
             { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
-            
-            // 2-блочные
             { size: 2, color: '#feca57', pattern: [[1,1]] },
             { size: 2, color: '#feca57', pattern: [[1],[1]] },
-
-            // 3-блочные
             { size: 3, color: '#1dd1a1', pattern: [[1,1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1],[1],[1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1,0],[1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1,1],[1,0]] },
             { size: 3, color: '#1dd1a1', pattern: [[0,1],[1,1]] },
-
-            // 4-блочные
-            { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] }, // Квадрат 2x2
-            { size: 4, color: '#54a0ff', pattern: [[1,1,1,1]] }, // 1x4
-            { size: 4, color: '#54a0ff', pattern: [[1],[1],[1],[1]] }, // 4x1
-
-            // 5-блочные
-            { size: 5, color: '#6c5ce7', pattern: [[1,1,1],[0,1,0],[0,1,0]] }, // Крест
-            { size: 5, color: '#6c5ce7', pattern: [[1,1,1,1,1]] }, // 1x5
-            
-            // 9-блочные
-            { size: 9, color: '#ff9f43', pattern: [[1,1,1],[1,1,1],[1,1,1]] }, // Квадрат 3x3
+            { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] },
+            { size: 4, color: '#54a0ff', pattern: [[1,1,1,1]] },
+            { size: 4, color: '#54a0ff', pattern: [[1],[1],[1],[1]] },
+            { size: 5, color: '#6c5ce7', pattern: [[1,1,1],[0,1,0],[0,1,0]] },
+            { size: 5, color: '#6c5ce7', pattern: [[1,1,1,1,1]] },
+            { size: 9, color: '#ff9f43', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
 
         let currentShapes = []; 
-        let draggedShapeIndex = -1; // Индекс перетаскиваемой фигуры
+        let draggedShapeIndex = -1; 
 
         // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОТРИСОВКИ ---
 
@@ -210,22 +267,27 @@
                     cell.dataset.col = c;
                     cell.id = `cell-${r}-${c}`;
                     
-                    // Обработчики событий для перетаскивания (цель)
                     cell.addEventListener('dragover', allowDrop);
                     cell.addEventListener('drop', handleDrop);
-                    cell.addEventListener('dragleave', handleDragLeave); // Для снятия подсветки
+                    cell.addEventListener('dragleave', handleDragLeave); 
                     gameBoardElement.appendChild(cell);
                 }
             }
 
-            // Добавляем обработчики, чтобы предотвратить сброс на панель фигур
             nextBlocksElement.addEventListener('dragover', (e) => e.preventDefault());
             nextBlocksElement.addEventListener('drop', (e) => e.preventDefault());
             
             score = 0;
             updateScore();
             generateNextShapes();
+            
             resetButton.onclick = initializeGame;
+            document.getElementById('theme-toggle-button').onclick = toggleTheme; 
+            
+            // Загрузка сохраненной темы
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
         }
 
         /** Обновляет счет на экране */
@@ -256,6 +318,7 @@
             container.dataset.shapeIndex = shapeIndex;
             container.draggable = true; 
             container.addEventListener('dragstart', handleDragStart);
+            container.addEventListener('dragend', handleDragEnd); // Привязка dragend
 
             const shapeDiv = document.createElement('div');
             shapeDiv.classList.add('shape');
@@ -263,7 +326,6 @@
             const rows = shapeData.pattern.length;
             const cols = shapeData.pattern[0].length;
             
-            // Установка CSS Grid для фигуры
             shapeDiv.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
             for (let r = 0; r < rows; r++) {
@@ -293,6 +355,21 @@
             
             draggedShapeIndex = parseInt(container.dataset.shapeIndex);
             event.dataTransfer.setData('text/plain', draggedShapeIndex); 
+
+            // Скрываем "бокс-призрак" при перетаскивании
+            const img = new Image();
+            img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            event.dataTransfer.setDragImage(img, 0, 0);
+
+            container.style.opacity = '0.5';
+        }
+        
+        function handleDragEnd(event) {
+            const container = event.target.closest('.shape-container');
+            if (container) {
+                container.style.opacity = '1';
+            }
+            clearHighlight();
         }
 
         function allowDrop(event) {
@@ -307,21 +384,18 @@
             const shapeData = currentShapes[draggedShapeIndex];
             if (!shapeData) return;
             
-            // Подсветка при наведении
             const canPlace = canPlaceShape(shapeData.pattern, startRow, startCol);
             
             if (canPlace) {
                  highlightCells(shapeData.pattern, startRow, startCol, shapeData.color);
             } else {
-                 // Если нельзя поставить, подсвечиваем красным (или просто очищаем)
                  highlightCells(shapeData.pattern, startRow, startCol, '#e74c3c'); 
             }
         }
         
         function handleDragLeave(event) {
-             // Снятие подсветки, если курсор выходит из поля
             if (event.relatedTarget && event.relatedTarget.closest('#game-board')) {
-                // Ничего не делаем, если просто перешли на другую ячейку
+                // Внутри поля, не чистим
             } else {
                 clearHighlight();
             }
@@ -329,7 +403,7 @@
 
         function handleDrop(event) {
             event.preventDefault();
-            clearHighlight(); // Снимаем подсветку до размещения
+            clearHighlight(); 
 
             const targetCell = event.target.closest('.cell');
             if (!targetCell) return;
@@ -342,30 +416,19 @@
 
             if (!shapeData) return;
 
-            // 1. Проверка возможности размещения
             if (canPlaceShape(shapeData.pattern, startRow, startCol)) {
-                // 2. Размещение фигуры
                 placeShape(shapeData, startRow, startCol);
                 
-                // 3. Удаление использованной фигуры из панели
                 currentShapes[shapeIndex] = null; 
                 document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`).remove();
                 
-                // 4. Проверка на очистку линий/столбцов
                 checkAndClearLines();
                 
-                // 5. Проверка, остались ли еще фигуры
                 if (currentShapes.every(shape => shape === null)) {
-                    generateNextShapes(); // Генерируем новый набор
+                    generateNextShapes(); 
                 }
                 
-                // 6. Проверка на конец игры
-                // Проверяем только после генерации нового набора
-                if (currentShapes.every(shape => isShapeImpossible(shape))) {
-                     // Дополнительная проверка, что новый набор фигур нельзя поставить
-                     alert(`Игра окончена! Ваш счет: ${score}`);
-                     initializeGame(); 
-                } else if (isGameOver()) {
+                if (isGameOver()) {
                     alert(`Игра окончена! Ваш счет: ${score}`);
                     initializeGame(); 
                 }
@@ -375,12 +438,22 @@
 
         // --- ОСНОВНАЯ ИГРОВАЯ ЛОГИКА ---
 
-        /** Подсвечивает ячейки, куда встанет фигура */
+        /** Переключает между светлой и темной темой */
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
         function highlightCells(pattern, startRow, startCol, color) {
             clearHighlight(); 
             
             const isPossible = canPlaceShape(pattern, startRow, startCol);
-            const highlightColor = isPossible ? color : '#e74c3c'; // Красный, если нельзя
+            const highlightColor = isPossible ? color : '#e74c3c'; 
             
             const rows = pattern.length;
             const cols = pattern[0].length;
@@ -391,10 +464,9 @@
                         const boardR = startRow + r;
                         const boardC = startCol + c;
                         
-                        // Проверка, что клетка находится на поле
                         if (boardR < BOARD_SIZE && boardC < BOARD_SIZE) {
                             const cell = document.getElementById(`cell-${boardR}-${boardC}`);
-                            if (cell) {
+                            if (cell && gameBoard[boardR][boardC] === EMPTY_COLOR) {
                                 cell.style.backgroundColor = highlightColor;
                                 cell.style.opacity = '0.5'; 
                                 lastHighlightedCells.push(cell); 
@@ -405,26 +477,21 @@
             }
         }
 
-        /** Снимает подсветку с ячеек */
         function clearHighlight() {
             lastHighlightedCells.forEach(cell => {
                 const r = parseInt(cell.dataset.row);
                 const c = parseInt(cell.dataset.col);
                 
+                // Только пустые ячейки должны вернуться к фоновому цвету
                 if (gameBoard[r][c] === EMPTY_COLOR) {
-                    // Возвращаем пустые ячейки к фоновому цвету сетки
                     cell.style.backgroundColor = EMPTY_COLOR; 
-                    cell.style.opacity = '1';
-                } else {
-                    // Возвращаем занятые ячейки к полному цвету блока
-                    cell.style.opacity = '1';
                 }
+                cell.style.opacity = '1';
             });
             lastHighlightedCells = [];
         }
 
 
-        /** Проверяет, можно ли разместить фигуру в заданных координатах */
         function canPlaceShape(pattern, startRow, startCol) {
             const rows = pattern.length;
             const cols = pattern[0].length;
@@ -435,12 +502,10 @@
                         const boardR = startRow + r;
                         const boardC = startCol + c;
                         
-                        // 1. Проверка границ поля
                         if (boardR >= BOARD_SIZE || boardC >= BOARD_SIZE) {
                             return false; 
                         }
                         
-                        // 2. Проверка занятости ячейки
                         if (gameBoard[boardR][boardC] !== EMPTY_COLOR) {
                             return false; 
                         }
@@ -450,7 +515,6 @@
             return true;
         }
 
-        /** Размещает фигуру на поле и обновляет DOM */
         function placeShape(shapeData, startRow, startCol) {
             const pattern = shapeData.pattern;
             const color = shapeData.color;
@@ -476,22 +540,19 @@
             updateScore(blocksPlaced); 
         }
 
-        /** Проверяет и очищает полные линии и столбцы */
+        /** Проверяет и очищает полные линии и столбцы (С АНИМАЦИЕЙ) */
         function checkAndClearLines() {
             let clearedLines = 0;
             const cellsToClear = new Set();
             
-            // 1. Проверка строк
+            // 1. Проверка строк и столбцов
             for (let r = 0; r < BOARD_SIZE; r++) {
                 if (gameBoard[r].every(color => color !== EMPTY_COLOR)) {
                     clearedLines++;
-                    for(let c = 0; c < BOARD_SIZE; c++) {
-                        cellsToClear.add({r: r, c: c});
-                    }
+                    for(let c = 0; c < BOARD_SIZE; c++) cellsToClear.add({r: r, c: c});
                 }
             }
 
-            // 2. Проверка столбцов
             for (let c = 0; c < BOARD_SIZE; c++) {
                 let isColFull = true;
                 for (let r = 0; r < BOARD_SIZE; r++) {
@@ -502,30 +563,32 @@
                 }
                 if (isColFull) {
                     clearedLines++;
-                    for(let r = 0; r < BOARD_SIZE; r++) {
-                        cellsToClear.add({r: r, c: c});
-                    }
+                    for(let r = 0; r < BOARD_SIZE; r++) cellsToClear.add({r: r, c: c});
                 }
             }
             
-            // 3. Очистка
+            // 2. Анимация и очистка
             if (clearedLines > 0) {
                 cellsToClear.forEach(({r, c}) => {
-                    // Обновляем состояние gameBoard
-                    gameBoard[r][c] = EMPTY_COLOR;
-                    
-                    // Обновляем DOM
                     const cell = document.getElementById(`cell-${r}-${c}`);
-                    cell.style.backgroundColor = EMPTY_COLOR;
-                    cell.classList.remove('filled');
+                    
+                    cell.classList.add('clearing');
+                    
+                    // Очищаем поле и DOM после завершения анимации
+                    setTimeout(() => {
+                        gameBoard[r][c] = EMPTY_COLOR;
+                        cell.style.backgroundColor = EMPTY_COLOR;
+                        cell.classList.remove('filled');
+                        cell.classList.remove('clearing'); 
+                        cell.style.transform = 'scale(1)';
+                        cell.style.opacity = '1';         
+                    }, 300); 
                 });
 
-                // Начисление очков (10 очков за очищенную линию/столбец)
                 updateScore(cellsToClear.size); 
             }
         }
         
-        /** Проверяет, можно ли поставить конкретную фигуру */
         function isShapeImpossible(shapeData) {
              if (shapeData === null) return true;
              
@@ -534,22 +597,19 @@
              for (let r = 0; r <= BOARD_SIZE - pattern.length; r++) {
                  for (let c = 0; c <= BOARD_SIZE - pattern[0].length; c++) {
                      if (canPlaceShape(pattern, r, c)) {
-                         return false; // Найдено место
+                         return false; 
                      }
                  }
              }
-             return true; // Не найдено места
+             return true; 
         }
 
 
-        /** Проверяет, есть ли хотя бы одно место для размещения оставшихся фигур */
         function isGameOver() {
             const remainingShapes = currentShapes.filter(shape => shape !== null);
             
-            // Если фигур нет, игра не окончена (будет генерация)
             if (remainingShapes.length === 0) return false;
 
-            // Если для КАЖДОЙ фигуры не нашлось места, то Game Over
             return remainingShapes.every(isShapeImpossible);
         }
 
