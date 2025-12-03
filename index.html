@@ -507,6 +507,7 @@
         const settingsModal = document.getElementById('settings-modal');
         const modeModal = document.getElementById('mode-modal');
         
+        // Кнопки, которые вызывали TypeError
         const resetButton = document.getElementById('reset-button');
         const settingsButton = document.getElementById('settings-button');
         const modeButton = document.getElementById('mode-button'); 
@@ -615,12 +616,13 @@
             updateComboDisplay(0);
             generateNextShapes();
             
-            // Обработчики кнопок
-            resetButton.onclick = () => initializeGame(gameMode);
-            settingsButton.onclick = () => settingsModal.style.display = 'block';
-            modeButton.onclick = () => showModeModal();
-            themeToggleButton.onclick = toggleTheme; 
-            leaderboardButton.onclick = fetchLeaderboard;
+            // Обработчики кнопок (ЭТО ТО, ЧТО ВЫЗЫВАЛО TypeError, если HTML не был полон!)
+            // Теперь, когда кнопки есть в HTML, это должно работать.
+            if (resetButton) resetButton.onclick = () => initializeGame(gameMode);
+            if (settingsButton) settingsButton.onclick = () => settingsModal.style.display = 'block';
+            if (modeButton) modeButton.onclick = () => showModeModal();
+            if (themeToggleButton) themeToggleButton.onclick = toggleTheme; 
+            if (leaderboardButton) leaderboardButton.onclick = fetchLeaderboard;
 
             // Обработчики для закрытия модальных окон
             closeButtons.forEach(btn => {
