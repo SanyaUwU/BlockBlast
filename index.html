@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Block Blast Game</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght=400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Анимация градиента (Черно-белый) */
+        /* Анимация градиента (Яркий, мультяшный) */
         @keyframes background-animation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -25,10 +25,10 @@
             padding: 30px;
             transition: background-color 0.3s, color 0.3s;
             
-            /* Черно-белый анимированный градиент */
-            background: linear-gradient(-45deg, #2c3e50, #34495e, #7f8c8d, #34495e);
+            /* Яркий анимированный градиент (Вдохновлен фото) */
+            background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
             background-size: 400% 400%;
-            animation: background-animation 15s ease infinite;
+            animation: background-animation 20s ease infinite;
             color: #ecf0f1;
         }
 
@@ -44,7 +44,7 @@
 
         h1 {
             font-weight: 700;
-            color: #6c5ce7;
+            color: #ff6b6b; /* Более яркий заголовок */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             transition: color 0.3s;
             margin-top: 0;
@@ -54,7 +54,7 @@
         /* Комбо дисплей */
         #combo-display {
             font-weight: 600;
-            text-shadow: 0 0 8px rgba(230, 126, 34, 0.8);
+            text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
             letter-spacing: 1px;
             transition: opacity 0.5s;
         }
@@ -69,7 +69,6 @@
         
         #mode-info {
             font-size: 0.9em;
-            color: #e74c3c;
             font-weight: 400;
             margin-top: 5px;
         }
@@ -78,7 +77,7 @@
         .header-buttons {
             display: flex;
             justify-content: space-between;
-            gap: 5px; /* Немного места между кнопками */
+            gap: 5px; 
             margin-bottom: 15px;
         }
 
@@ -89,7 +88,7 @@
             display: grid;
             grid-template-columns: repeat(8, 1fr); 
             grid-template-rows: repeat(8, 1fr);   
-            border: 6px solid #6c5ce7; 
+            border: 6px solid #ff9f43; /* Яркая рамка */
             border-radius: 8px; 
             background-color: #dfe6e9; 
             margin: 0 auto 25px auto;
@@ -111,10 +110,10 @@
             opacity: 1 !important; 
         }
         
-        /* === НОВЫЙ СТИЛЬ: ИИ-Подсказка === */
+        /* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
         .ai-highlight {
-            box-shadow: 0 0 5px 3px rgba(52, 152, 219, 0.8) !important;
-            border: 2px solid #3498db !important;
+            box-shadow: 0 0 8px 3px #00ff00 !important; /* Яркий зеленый свет */
+            border: 2px solid #00ff00 !important;
         }
         
         /* Радужная Анимация исчезновения */
@@ -165,6 +164,11 @@
              box-shadow: none;
         }
         
+        /* Подсветка фигуры, когда она является целью ИИ */
+        .shape-container.ai-target {
+            box-shadow: 0 0 0 3px #1dd1a1;
+        }
+        
         .shape-container[draggable="true"]:hover {
              box-shadow: 0 0 0 2px #6c5ce7;
         }
@@ -180,18 +184,23 @@
             box-sizing: border-box;
         }
         
-        /* Кнопки */
+        /* === ГРАДИЕНТНЫЕ КНОПКИ === */
         .game-button {
-            padding: 10px 10px; /* Уменьшаем паддинг для 3 кнопок */
+            padding: 10px 10px; 
             flex-grow: 1;
             font-size: 1em;
             cursor: pointer;
             border: none;
             border-radius: 8px; 
             font-weight: 600;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: all 0.2s;
             color: white;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-size: 200% auto;
+        }
+        
+        .game-button:hover {
+            background-position: right center; /* Анимация градиента */
         }
         
         .game-button:active {
@@ -199,13 +208,16 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        #reset-button { background-color: #6c5ce7; }
-        #reset-button:hover { background-color: #5a4bcf; }
-        #settings-button { background-color: #e84393; }
-        #settings-button:hover { background-color: #c7297e; }
-        #mode-button { background-color: #3498db; }
-        #mode-button:hover { background-color: #2980b9; }
-
+        /* Градиенты для конкретных кнопок */
+        #reset-button { 
+            background-image: linear-gradient(to right, #6c5ce7 0%, #a29bfe 100%);
+        }
+        #settings-button { 
+            background-image: linear-gradient(to right, #ff7675 0%, #e84393 100%);
+        }
+        #mode-button { 
+            background-image: linear-gradient(to right, #00b894 0%, #00cec9 100%);
+        }
 
         /* === ТЕМНАЯ ТЕМА === */
         .dark-mode .game-container {
@@ -214,8 +226,9 @@
         }
         
         .dark-mode .score-panel { color: #ecf0f1; }
+        .dark-mode #mode-info { color: #ccc !important; }
         .dark-mode #game-board {
-            border: 6px solid #8e44ad;
+            border: 6px solid #a29bfe;
             background-color: #4a637d; 
         }
         .dark-mode .cell { border: 1px solid #7f8c8d; }
@@ -231,6 +244,18 @@
         }
         .dark-mode .close-button { color: #ccc; }
         .dark-mode .close-button:hover { color: #fff; }
+        
+        /* Градиенты для кнопок в темной теме */
+        .dark-mode #reset-button { 
+            background-image: linear-gradient(to right, #5a4bcf 0%, #8e44ad 100%);
+        }
+        .dark-mode #settings-button { 
+            background-image: linear-gradient(to right, #d63031 0%, #b8307d 100%);
+        }
+        .dark-mode #mode-button { 
+            background-image: linear-gradient(to right, #009688 0%, #00695c 100%);
+        }
+
 
         /* === СТИЛИ МОДАЛЬНОГО ОКНА === */
         .modal {
@@ -283,28 +308,30 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
+            background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%); /* Градиент */
+            background-size: 200% auto;
+            color: #333;
         }
 
         .mode-selection-button:hover {
-            background-color: #ddd;
+            background-position: right center;
         }
 
         .mode-selection-button.active {
             border-color: #6c5ce7;
-            background-color: #dbe4ff;
+            background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
             font-weight: 600;
         }
         
         .dark-mode .mode-selection-button {
-            background-color: #5d6d7e;
-            color: #ecf0f1;
-        }
-        .dark-mode .mode-selection-button:hover {
-            background-color: #7f8c8d;
+            background-image: linear-gradient(to right, #f7f7f7 0%, #f1f1f1 100%);
+            color: #333;
         }
         .dark-mode .mode-selection-button.active {
-             border-color: #8e44ad;
-             background-color: #5d6d7e;
+             border-color: #a29bfe;
+             background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
+             color: white;
         }
 
 
@@ -363,12 +390,12 @@
             
             <button class="mode-selection-button active" data-mode="normal">
                 **Обычный режим**
-                <br><span style="font-size: 0.8em; color: #7f8c8d;">Счет идет в будущий рейтинг.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">Счет идет в будущий рейтинг.</span>
             </button>
             
             <button class="mode-selection-button" data-mode="training">
                 **Тренировка с ИИ-подсказчиком** 🤖
-                <br><span style="font-size: 0.8em; color: #7f8c8d;">ИИ покажет лучшее место. Счет не учитывается.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучшее место. Счет не учитывается.</span>
             </button>
         </div>
     </div>
@@ -380,7 +407,7 @@
             <hr style="border-color: #ccc; margin-bottom: 20px;">
             <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">
                 Тема оформления:
-                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0; width: 100%;">Сменить тему</button>
+                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
             </p>
             
             <div class="sanwec-credit">By: Sanwec</div>
@@ -396,7 +423,7 @@
         const NORMAL_MODE = 'normal';
         const TRAINING_MODE = 'training';
 
-        let gameMode = NORMAL_MODE; // Текущий режим
+        let gameMode = NORMAL_MODE; 
         let score = 0;
         let gameBoard = []; 
         let lastHighlightedCells = []; 
@@ -405,7 +432,7 @@
         let draggedShapeIndex = -1; 
         let dragOffset = { row: 0, col: 0 }; 
         let canClearNextShapes = false; 
-        let currentBestPlacement = null; // Для хранения лучшего места ИИ
+        let currentBestPlacement = null; 
 
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
@@ -422,22 +449,36 @@
         const closeButtons = document.querySelectorAll('.close-button');
         const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
         
-        // Определение фигур
+        // Определение фигур (Обновлено: Добавлены фигуры из Block Blast)
         const SHAPES = [
+            // 1x1, 1x2, 2x1 (базовые)
             { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
             { size: 2, color: '#feca57', pattern: [[1,1]] },
             { size: 2, color: '#feca57', pattern: [[1],[1]] },
+            
+            // 2x2 квадрат, 1x3, 3x1 (базовые)
+            { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1,1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1],[1],[1]] },
-            { size: 3, color: '#1dd1a1', pattern: [[1,0],[1,1]] },
-            { size: 3, color: '#1dd1a1', pattern: [[1,1],[1,0]] },
-            { size: 3, color: '#1dd1a1', pattern: [[0,1],[1,1]] },
-            { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] },
-            { size: 4, color: '#54a0ff', pattern: [[1,1,1,1]] },
-            { size: 4, color: '#54a0ff', pattern: [[1],[1],[1],[1]] },
-            { size: 5, color: '#6c5ce7', pattern: [[1,1,1],[0,1,0],[0,1,0]] },
-            { size: 5, color: '#6c5ce7', pattern: [[1,1,1,1,1]] },
-            { size: 9, color: '#ff9f43', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
+            
+            // 1x4, 4x1
+            { size: 4, color: '#a29bfe', pattern: [[1,1,1,1]] },
+            { size: 4, color: '#a29bfe', pattern: [[1],[1],[1],[1]] },
+
+            // L-образные (3 блока)
+            { size: 3, color: '#ff9f43', pattern: [[1,0],[1,0],[1,1]] }, // L
+            { size: 3, color: '#ff9f43', pattern: [[1,1,1],[1,0,0]] }, // L
+            
+            // T-образные (4 блока)
+            { size: 4, color: '#fab1a0', pattern: [[0,1,0],[1,1,1],[0,0,0]] }, // T
+            { size: 4, color: '#fab1a0', pattern: [[1],[1,1],[1]] }, // T (вертикальный)
+
+            // Z/S-образные (3 блока)
+            { size: 3, color: '#d63031', pattern: [[1,1,0],[0,1,1]] }, // Z
+            { size: 3, color: '#d63031', pattern: [[0,1],[1,1],[1,0]] }, // S
+
+            // 3x3 квадрат
+            { size: 9, color: '#ff6b81', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
 
 
@@ -498,7 +539,6 @@
         }
         
         function showModeModal() {
-            // Устанавливаем активный класс
             modeSelectionButtons.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.mode === gameMode) {
@@ -510,7 +550,6 @@
         
         function selectMode(mode) {
             if (mode !== gameMode) {
-                // Если режим меняется, начинаем новую игру
                 initializeGame(mode);
             }
             modeModal.style.display = 'none';
@@ -569,15 +608,79 @@
             
             currentShapes = [];
             nextBlocksElement.innerHTML = '';
-
+            
+            // --- НОВАЯ ЛОГИКА ГЕНЕРАЦИИ (95% выигрыш / 5% проигрыш) ---
+            
+            const randomChance = Math.random();
+            let safeShapes = [];
+            
+            // 95% шанс получить набор, который можно поставить
+            if (randomChance < 0.95) { 
+                // Генерируем набор и проверяем, можно ли его разместить
+                while (true) {
+                    safeShapes = [];
+                    for (let i = 0; i < 3; i++) {
+                        const randomIndex = Math.floor(Math.random() * SHAPES.length);
+                        safeShapes.push(SHAPES[randomIndex]);
+                    }
+                    
+                    // Проверяем, может ли хотя бы одна фигура из набора быть размещена
+                    if (safeShapes.some(shape => shapeCanBePlaced(shape.pattern))) {
+                        currentShapes = safeShapes;
+                        break;
+                    }
+                }
+            } else {
+                // 5% шанс получить полностью случайный (и потенциально проигрышный) набор
+                 for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * SHAPES.length);
+                    currentShapes.push(SHAPES[randomIndex]);
+                }
+            }
+            
+            // --- Отображение фигур ---
             for (let i = 0; i < 3; i++) {
-                const randomIndex = Math.floor(Math.random() * SHAPES.length);
-                const shapeData = SHAPES[randomIndex];
-                currentShapes.push(shapeData);
-
+                const shapeData = currentShapes[i];
                 const container = createShapeElement(shapeData, i);
                 nextBlocksElement.appendChild(container);
             }
+            
+            // Если режим тренировки, сразу показать подсказку
+            if (gameMode === TRAINING_MODE) {
+                showAIHighlightOnShape(0); // Подсвечиваем первую фигуру по умолчанию
+            }
+        }
+        
+        function shapeCanBePlaced(pattern) {
+             const rows = pattern.length;
+             const cols = pattern[0].length;
+             
+             // Ищем первый активный блок в фигуре (для расчета смещения)
+             let offsetR = 0;
+             let offsetC = 0;
+             outer:
+             for (let r = 0; r < rows; r++) {
+                 for (let c = 0; c < cols; c++) {
+                     if (pattern[r][c] === 1) {
+                         offsetR = r;
+                         offsetC = c;
+                         break outer;
+                     }
+                 }
+             }
+
+             for (let r = 0; r < BOARD_SIZE; r++) {
+                 for (let c = 0; c < BOARD_SIZE; c++) {
+                     // Проверяем каждую клетку как потенциальный 'центр'
+                     const startR = r - offsetR;
+                     const startC = c - offsetC;
+                     
+                     if (canPlaceShape(pattern, startR, startC)) {
+                         return true; 
+                     }
+                 }
+             }
+             return false;
         }
 
         function createShapeElement(shapeData, shapeIndex) {
@@ -588,7 +691,7 @@
             container.addEventListener('dragstart', handleDragStart);
             container.addEventListener('dragend', handleDragEnd);
             
-            // Обработчики для ИИ-подсказки (только для TRAINING_MODE)
+            // Обработчики для ИИ-подсказки
             container.addEventListener('mouseenter', handleShapeHover);
             container.addEventListener('mouseleave', handleShapeLeave);
 
@@ -622,7 +725,7 @@
             return container;
         }
         
-        // --- ЛОГИКА ИИ-ПОДСКАЗКИ ---
+        // --- ЛОГИКА ИИ-ПОДСКАЗКИ (Обновлено для постоянного отображения) ---
         
         function checkPlacementScore(tempBoard, pattern, startRow, startCol) {
             // Временно размещаем фигуру
@@ -637,7 +740,6 @@
 
             let blocksPlaced = shapeBlocks.length;
             
-            // Временный массив для проверки линий
             const tempCells = JSON.parse(JSON.stringify(tempBoard));
             shapeBlocks.forEach(b => {
                 tempCells[b.r][b.c] = 'filled'; 
@@ -669,11 +771,8 @@
                 }
             }
             
-            // Оценка:
-            // Приоритет 1: Количество очищенных линий
-            // Приоритет 2: Количество блоков в самой фигуре (чем больше, тем лучше)
-            // Приоритет 3: Больше очищенных ячеек
-            return (clearedLines * 1000) + (blocksPlaced * 10) + cellsToClear.size;
+            // Оценка: Приоритет 1: Линии (x1000), Приоритет 2: Ячейки (x10), Приоритет 3: Размер фигуры (x1)
+            return (clearedLines * 1000) + (cellsToClear.size * 10) + blocksPlaced;
         }
 
         function findBestPlacement(shapeData) {
@@ -698,7 +797,7 @@
                 }
             }
 
-
+            // Проверяем все возможные стартовые точки
             for (let startR = -rows + 1; startR < BOARD_SIZE; startR++) {
                 for (let startC = -cols + 1; startC < BOARD_SIZE; startC++) {
                     
@@ -707,7 +806,6 @@
                         
                         if (score > bestScore) {
                             bestScore = score;
-                            // Сохраняем начальную точку и смещение
                             bestPlacement = { startRow: startR, startCol: startC, offsetR: offsetR, offsetC: offsetC }; 
                         }
                     }
@@ -734,7 +832,6 @@
                         const cell = document.getElementById(`cell-${boardR}-${boardC}`);
                         if (cell) {
                             cell.classList.add('ai-highlight');
-                            // Используем цвет фигуры для подсветки, но с большей прозрачностью
                             cell.style.backgroundColor = color;
                             cell.style.opacity = '0.6'; 
                             lastHighlightedCells.push(cell); 
@@ -744,6 +841,37 @@
             }
         }
         
+        function showAIHighlightOnShape(shapeIndex) {
+            // Убираем подсветку со всех фигур
+            document.querySelectorAll('.shape-container').forEach(c => c.classList.remove('ai-target'));
+            
+            const shapeContainer = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
+            
+            if (!shapeContainer) {
+                // Если фигур нет, или фигура уже размещена, чистим доску
+                clearHighlight(); 
+                return;
+            }
+            
+            shapeContainer.classList.add('ai-target');
+
+            draggedShapeIndex = shapeIndex; // Временно устанавливаем для ИИ
+            const shapeData = currentShapes[shapeIndex];
+            
+            if (!shapeData) return;
+            
+            const placement = findBestPlacement(shapeData);
+            
+            if (placement) {
+                currentBestPlacement = placement;
+                highlightAI(placement, shapeData.color);
+            } else {
+                clearHighlight();
+                currentBestPlacement = null;
+            }
+        }
+
+
         function handleShapeHover(event) {
             if (gameMode !== TRAINING_MODE) return;
             
@@ -751,30 +879,21 @@
             if (!container) return;
             
             const shapeIndex = parseInt(container.dataset.shapeIndex);
-            const shapeData = currentShapes[shapeIndex];
-            if (!shapeData) return;
             
-            // Временно устанавливаем draggedShapeIndex и dragOffset для findBestPlacement
-            draggedShapeIndex = shapeIndex;
-            // dragOffset здесь не используется, но это нужно для единообразия
-            
-            const placement = findBestPlacement(shapeData);
-            
-            if (placement) {
-                currentBestPlacement = placement;
-                highlightAI(placement, shapeData.color);
+            // Если курсор на другой фигуре, переключаем ИИ-подсветку
+            if (draggedShapeIndex !== shapeIndex) {
+                showAIHighlightOnShape(shapeIndex);
             }
         }
 
         function handleShapeLeave() {
-            if (gameMode !== TRAINING_MODE) return;
-            
-            clearHighlight();
-            currentBestPlacement = null;
+            // В режиме TRAINING_MODE мы не чистим подсветку при уходе курсора с фигуры.
+            // Вместо этого она остается на той фигуре, которая была последней.
+            // Чистка происходит только при начале перетаскивания или при очистке/сбросе.
         }
 
 
-        // --- ЛОГИКА DRAG AND DROP (ТОЧНОЕ ПОЗИЦИОНИРОВАНИЕ) ---
+        // --- ЛОГИКА DRAG AND DROP ---
 
         function handleDragStart(event) {
             const container = event.target.closest('.shape-container');
@@ -784,16 +903,15 @@
             event.dataTransfer.setData('text/plain', draggedShapeIndex); 
 
             container.classList.add('is-dragging');
+            container.classList.remove('ai-target'); // Убираем подсветку ИИ с фигуры
 
             const shapeData = currentShapes[draggedShapeIndex];
             const targetBlock = event.target.closest('.block');
             
             if (targetBlock && targetBlock.dataset.r !== undefined) {
-                // Если клик был по активному блоку, используем его координаты относительно фигуры
                 dragOffset.row = parseInt(targetBlock.dataset.r);
                 dragOffset.col = parseInt(targetBlock.dataset.c);
             } else {
-                 // Если клик был по контейнеру, ищем ближайший к верхнему левому углу активный блок
                 if (shapeData) {
                     for (let r = 0; r < shapeData.pattern.length; r++) {
                         for (let c = 0; c < shapeData.pattern[0].length; c++) {
@@ -808,13 +926,13 @@
                 dragOffset = { row: 0, col: 0 };
             }
             
-            // Скрываем "бокс-призрак"
+            // Скрываем "бокс-призрак" и центрируем его
             const img = new Image();
             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
             const blockSize = 22; 
             event.dataTransfer.setDragImage(img, dragOffset.col * blockSize, dragOffset.row * blockSize);
 
-            // Если был активен AI-подсказчик, то его нужно очистить, чтобы не мешал
+            // Очищаем AI-подсветку, чтобы видеть точное позиционирование
             clearHighlight(); 
             container.style.opacity = '0.5';
         }
@@ -826,8 +944,15 @@
                 container.classList.remove('is-dragging'); 
             }
             clearHighlight();
-            // Сбросить, чтобы не мешало при следующем hover
-            currentBestPlacement = null; 
+            
+            // Если режим TRAINING_MODE, восстанавливаем AI-подсветку на первой доступной фигуре
+            if (gameMode === TRAINING_MODE) {
+                const nextAvailableIndex = currentShapes.findIndex(shape => shape !== null);
+                if (nextAvailableIndex !== -1) {
+                    showAIHighlightOnShape(nextAvailableIndex);
+                }
+            }
+            draggedShapeIndex = -1;
         }
 
         function allowDrop(event) {
@@ -885,8 +1010,15 @@
                 
                 checkAndClearLines();
                 
+                // Проверяем, нужно ли генерировать новые фигуры
                 if (currentShapes.every(shape => shape === null)) {
                     generateNextShapes(); 
+                } else if (gameMode === TRAINING_MODE) {
+                    // Если фигуры остались, обновляем ИИ-подсветку на первой доступной
+                    const nextAvailableIndex = currentShapes.findIndex(shape => shape !== null);
+                    if (nextAvailableIndex !== -1) {
+                         showAIHighlightOnShape(nextAvailableIndex);
+                    }
                 }
                 
                 if (isGameOver()) {
@@ -895,7 +1027,6 @@
                 }
             } 
             
-            // Сброс после дропа
             draggedShapeIndex = -1; 
         }
 
@@ -926,7 +1057,6 @@
                                 cell.style.outline = '2px solid #e74c3c';
                                 lastHighlightedCells.push(cell);
                             }
-                            // Убираем AI-подсветку при перетаскивании
                             if(cell) cell.classList.remove('ai-highlight'); 
                         }
                     }
@@ -1059,7 +1189,6 @@
              
              const pattern = shapeData.pattern;
              
-             // Ищем первый активный блок в фигуре (для расчета смещения)
             let offsetR = 0;
             let offsetC = 0;
             outer:
@@ -1075,7 +1204,6 @@
              
              for (let r = 0; r < BOARD_SIZE; r++) {
                  for (let c = 0; c < BOARD_SIZE; c++) {
-                     // Проверяем каждую клетку как потенциальный 'центр'
                      const startR = r - offsetR;
                      const startC = c - offsetC;
                      
