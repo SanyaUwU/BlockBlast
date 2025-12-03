@@ -125,17 +125,33 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
+        /* === ИСПРАВЛЕНИЕ: ВОССТАНОВЛЕНИЕ ЦЕНТРИРОВАНИЯ ФИГУР === */
+        #next-blocks {
+            display: flex;
+            justify-content: space-around;
+            align-items: center; /* Центрирование по вертикали */
+            padding: 10px 0;
+            min-height: 100px;
+        }
+
         .shape-container {
-            width: 75px; /* Немного увеличен для лучшего вида */
+            width: 75px; 
             height: 75px;
+            display: flex; /* Для центрирования самой фигуры внутри контейнера */
+            justify-content: center;
+            align-items: center;
             cursor: grab; 
             border: 2px solid transparent;
             border-radius: 8px;
             transition: border-color 0.2s, opacity 0.2s;
         }
         
+        .shape {
+            display: grid;
+        }
+
         .block {
-            width: 22px; /* Чуть больше блоки */
+            width: 22px; 
             height: 22px;
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
@@ -190,22 +206,22 @@
         .dark-mode .close-button { color: #ccc; }
         .dark-mode .close-button:hover { color: #fff; }
 
-        /* === ИСПРАВЛЕННЫЕ СТИЛИ МОДАЛЬНОГО ОКНА === */
+        /* === СТИЛИ МОДАЛЬНОГО ОКНА (ИСПРАВЛЕНО) === */
         .modal {
             display: none; 
-            position: fixed; /* Фиксированное позиционирование */
-            z-index: 100; /* Высокий индекс наложения */
+            position: fixed; 
+            z-index: 100; 
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.6); /* Темный полупрозрачный фон */
+            background-color: rgba(0,0,0,0.6); 
         }
 
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; /* Центрирование по вертикали */
+            margin: 15% auto; 
             padding: 30px;
             border: none;
             width: 80%; 
@@ -485,7 +501,6 @@
                             if (shapeData.pattern[r][c] === 1) {
                                 dragOffset.row = r;
                                 dragOffset.col = c;
-                                // Добавляем return, чтобы прекратить поиск после нахождения первого блока
                                 return; 
                             }
                         }
