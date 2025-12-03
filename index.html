@@ -435,8 +435,9 @@
         <div class="header-buttons">
             <button id="auth-button" class="game-button" style="background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Вход/Регистрация</button>
             <button id="leaderboard-button" class="game-button" style="background-image: linear-gradient(to right, #FF9800 0%, #FFC107 100%);">Лидеры 🏆</button>
-            <button id="reset-button" 
-class="game-button">Начать заново</button>
+            <button id="reset-button" class="game-button">Начать заново</button>
+            <button id="settings-button" class="game-button">Настройки</button>
+            <button id="mode-button" class="game-button">Режим</button>
         </div>
 
         <div class="score-panel">
@@ -446,13 +447,13 @@ class="game-button">Начать заново</button>
         </div>
 
         <div id="game-board">
-            </div>
+        </div>
 
         <div class="next-blocks-panel">
    
              <h3>Следующие фигуры:</h3>
             <div id="next-blocks">
-                </div>
+            </div>
         </div>
     </div>
     
@@ -461,19 +462,16 @@ class="game-button">Начать заново</button>
             <span class="close-button" data-modal="mode">&times;</span>
             <h2>Выберите Режим Игры</h2>
   
-           <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+           <hr style="border-color: #ccc; margin-bottom: 20px;">
             
             <button class="mode-selection-button active" data-mode="normal">
                 **Обычный режим**
-                <br><span style="font-size: 0.8em;
-color: inherit;">Счет идет в таблицу лидеров.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">Счет идет в таблицу лидеров.</span>
             </button>
             
             <button class="mode-selection-button" data-mode="training">
                 **Тренировка с ИИ-подсказчиком** 🤖
-                <br><span style="font-size: 0.8em;
-color: inherit;">ИИ показывает лучший ход. Счет не учитывается.</span>
+                <br><span style="font-size: 0.8em; color: inherit;">ИИ показывает лучший ход. Счет не учитывается.</span>
             </button>
         </div>
     </div>
@@ -482,35 +480,25 @@ color: inherit;">ИИ показывает лучший ход. Счет не у
         <div class="modal-content">
             <span class="close-button" data-modal="auth">&times;</span>
             <h2 id="auth-title">Вход / Регистрация</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
             
             <form id="auth-form">
                 <div style="margin-bottom: 15px;">
-                    <label for="auth-email" style="font-weight: 600;
-display: block; margin-bottom: 5px;">Email:</label>
-                    <input type="email" id="auth-email" required style="width: 100%;
-padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
-color: #333;">
+                    <label for="auth-email" style="font-weight: 600; display: block; margin-bottom: 5px;">Email:</label>
+                    <input type="email" id="auth-email" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
                 </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <label for="auth-password" style="font-weight: 600;
-display: block; margin-bottom: 5px;">Пароль:</label>
-                    <input type="password" id="auth-password" required style="width: 100%;
-padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
-color: #333;">
+                    <label for="auth-password" style="font-weight: 600; display: block; margin-bottom: 5px;">Пароль:</label>
+                    <input type="password" id="auth-password" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; color: #333;">
                 </div>
                 
-                <button type="submit" id="auth-submit-button" class="game-button" style="width: 100%;
-margin-bottom: 10px; background-image: linear-gradient(to right, #4CAF50 0%, #8BC34A 100%);">Войти</button>
+                <button type="submit" id="auth-submit-button" class="game-button" style="width: 100%; margin-bottom: 10px; background-image: linear-gradient(to right, #4CAF50 0%, #8BC34A 100%);">Войти</button>
                 
-                <button type="button" id="toggle-auth-button" class="game-button" style="width: 100%;
-background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Нужна регистрация?</button>
+                <button type="button" id="toggle-auth-button" class="game-button" style="width: 100%; background-image: linear-gradient(to right, #2196F3 0%, #03A9F4 100%);">Нужна регистрация?</button>
             </form>
             
-            <p id="auth-message" style="margin-top: 15px;
-font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
+            <p id="auth-message" style="margin-top: 15px; font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
         </div>
     </div>
 
@@ -518,8 +506,7 @@ font-weight: 600; color: #e74c3c; min-height: 1.1em;"></p>
         <div class="modal-content">
             <span class="close-button" data-modal="leaderboard">&times;</span>
             <h2>Таблица Лидеров 🏆</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
             <ol id="leaderboard-list"></ol>
         </div>
     </div>
@@ -562,13 +549,10 @@ margin-bottom: 20px;">
         <div class="modal-content">
             <span class="close-button" data-modal="settings">&times;</span>
             <h2>Настройки Игры</h2>
-            <hr style="border-color: #ccc;
-margin-bottom: 20px;">
-            <p style="font-size: 1.1em; font-weight: 600;
-margin-bottom: 20px;">
+            <hr style="border-color: #ccc; margin-bottom: 20px;">
+            <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">
                 Тема оформления:
-                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db;
-margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
+                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
             </p>
             
             <div class="sanwec-credit">By: Sanwec</div>
@@ -685,8 +669,7 @@ Z
             { size: 9, color: '#ff6b81', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
         ];
         // === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
-        // !!!
-ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
+        // !!! ВСТАВЬТЕ СЮДА ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE !!!
         const firebaseConfig = {
             apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
             authDomain: "block-blast-leader.firebaseapp.com",
