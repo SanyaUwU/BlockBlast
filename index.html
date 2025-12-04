@@ -739,6 +739,9 @@
                     btn.classList.add('active');
                 }
             });
+            
+            // Активируем защиту переменных ТОЛЬКО после инициализации
+            protectGameVariables(); 
         }
         
         // --- ФУНКЦИИ АНТИ-ЧИТА ---
@@ -760,45 +763,64 @@
             // Остановка всех таймеров/проверок
             if (window.devtoolsInterval) clearInterval(window.devtoolsInterval);
         }
-
-        function checkClientTampering() {
+        
+        // НОВАЯ ФУНКЦИЯ: Защита основных переменных
+        function protectGameVariables() {
             // 1. Защита от прямого изменения основных переменных через консоль
             protectedVariables.forEach(varName => {
                 try {
-                     // Создаем "ловушку" на изменение переменной
-                    let originalValue = eval(varName);
-                    Object.defineProperty(window, varName, {
-                        get: function() { 
-                            return originalValue; 
-                        },
-                        set: function(val) {
-                            if (val !== originalValue) {
-                                blockUser(`Попытка изменить защищенную переменную: ${varName}`);
-                            }
-                            originalValue = val;
-                        },
-                        configurable: false,
-                        enumerable: true
-                    });
+                    if (window[varName] !== undefined) {
+                        let originalValue = eval(varName); 
+                        
+                        // Удаляем старую защиту (если есть)
+                        if (Object.getOwnPropertyDescriptor(window, varName).set) {
+                           delete window[varName]; 
+                           window[varName] = originalValue; // Сброс
+                        }
+                        
+                        Object.defineProperty(window, varName, {
+                            get: function() { 
+                                return originalValue; 
+                            },
+                            set: function(val) {
+                                // Если новое значение отличается от оригинального, блокируем
+                                if (val !== originalValue) {
+                                    blockUser(`Попытка изменить защищенную переменную: ${varName}`);
+                                }
+                                originalValue = val;
+                            },
+                            configurable: true, // Должно быть true для перезапуска игры
+                            enumerable: true
+                        });
+                    }
                 } catch (e) {
-                    // Переменная не существует или ее нельзя переопределить
+                    console.warn(`Cannot protect variable ${varName}:`, e);
                 }
             });
+        }
 
+
+        function checkClientTampering() {
             // 2. Детектор открытия DevTools (по изменению размеров окна)
             let devtoolsOpen = false;
             window.devtoolsInterval = setInterval(() => {
+                // Использование window.outerHeight/Width менее надежно, но предотвращает моментальную блокировку
                 if (window.outerWidth - window.innerWidth > consoleDetectionThreshold || 
                     window.outerHeight - window.innerHeight > consoleDetectionThreshold) {
                     
                     if (!devtoolsOpen) {
                         devtoolsOpen = true;
-                        blockUser('Обнаружено открытие консоли разработчика.');
+                        // Дополнительная задержка для подтверждения (уменьшение ложных срабатываний)
+                        setTimeout(() => {
+                            if (devtoolsOpen) { // Проверяем, что консоль все еще открыта
+                                blockUser('Обнаружено открытие консоли разработчика.');
+                            }
+                        }, 100); 
                     }
                 } else {
                     devtoolsOpen = false;
                 }
-            }, 500); // Проверка каждые 0.5 секунды
+            }, 1000); // Проверка каждые 1 секунду
         }
 
         // --- КОНЕЦ ФУНКЦИЙ АНТИ-ЧИТА ---
@@ -1175,6 +1197,7 @@
             let firstBlockR = 0;
             let firstBlockC = 0;
             const pattern = shapeData.pattern;
+            const cols = pattern[0].length;
             outer: for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < cols; c++) {
                     if (pattern[r][c] === 1) {
@@ -1483,7 +1506,7 @@
                     // Установка никнейма по умолчанию
                     const defaultNickname = email.split('@')[0];
                     
-                    // Проверка на уникальность никнейма по умолчанию (если занят, пользователь должен будет изменить его)
+                    // Проверка на уникальность никнейма по умолчанию 
                     if (!(await isNicknameUnique(defaultNickname, user.uid))) {
                         console.warn('Никнейм по умолчанию занят. Пользователю нужно будет его сменить.');
                     }
@@ -1705,7 +1728,7 @@
              profileMessage.textContent = '';
          }
          
-         // НОВАЯ ФУНКЦИЯ: Проверка на уникальность никнейма
+         // ФУНКЦИЯ: Проверка на уникальность никнейма
          async function isNicknameUnique(nickname, currentUserId) {
             const snapshot = await db.collection("users")
                 .where("nickname", "==", nickname)
@@ -1799,11 +1822,11 @@
         // --- ЗАПУСК ИГРЫ ---
 
         function main() {
-            // Инициализация игры
+            // Инициализация игры (включает защиту переменных)
             initializeGame(NORMAL_MODE); 
 
-            // ЗАПУСК АНТИ-ЧИТА
-            checkClientTampering(); 
+            // Запуск АНТИ-ЧИТА с небольшой задержкой (1 секунда) после полной загрузки
+            setTimeout(checkClientTampering, 1000); 
 
             // Обработчики кнопок
             resetButton.onclick = () => initializeGame(gameMode);
