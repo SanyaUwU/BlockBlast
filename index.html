@@ -17,14 +17,13 @@
 
         /* Общие стили */
         body {
-            font-family: 'Poppins', sans-serif; 
+            font-family: 'Poppins', sans-serif;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
             padding: 30px;
             transition: background-color 0.3s, color 0.3s;
-            
             /* Яркий анимированный градиент */
             background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
             background-size: 400% 400%;
@@ -175,7 +174,7 @@
         
         .shape-container.is-dragging {
              opacity: 0.01;
-            box-shadow: none;
+             box-shadow: none;
         }
         
         /* Подсветка фигуры, когда она является целью ИИ */
@@ -396,7 +395,7 @@
         }
         .dark-mode .mode-selection-button.active {
              border-color: #a29bfe;
-            background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
+             background-image: linear-gradient(to right, #8e44ad 0%, #a29bfe 100%);
              color: white;
         }
         .dark-mode #leaderboard-list li, 
@@ -450,7 +449,8 @@
         </div>
 
         <div id="game-board">
-            </div>
+        
+        </div>
 
         <div class="next-blocks-panel">
    
@@ -461,6 +461,7 @@
         
         <div class="header-buttons">
             <button id="mode-button" class="game-button">Режим Игры 🕹️</button>
+ 
             <button id="settings-button" class="game-button" style="background-image: linear-gradient(to right, #ff7675 0%, #e84393 100%);">Настройки ⚙️</button>
         </div>
     </div>
@@ -530,6 +531,7 @@
                 <p>Никнейм: <strong id="profile-nickname"></strong></p>
                 <p>Email: <strong id="profile-email"></strong></p>
                 <p>Лучший Счет: <strong id="profile-high-score">0</strong></p>
+  
             </div>
             
             <form id="edit-profile-form" style="display: none;">
@@ -553,9 +555,13 @@
             <hr style="border-color: #ccc; margin-bottom: 20px;">
             <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">
                 Тема оформления:
-                <button id="theme-toggle-button" class="game-button" style="background-color: #3498db; margin: 10px 0 0 0; width: 100%; background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">Сменить тему</button>
+                <button id="theme-toggle-button" 
+                        class="game-button" 
+                        style="margin: 10px 0 0 0; width: 100%; 
+                               background-image: linear-gradient(to right, #3498db 0%, #2980b9 100%);">
+                    Сменить тему
+                </button>
             </p>
-            
             <div class="sanwec-credit">By: Sanwec</div>
         </div>
     </div>
@@ -563,68 +569,55 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    
     <script>
-        // --- КОНСТАНТЫ И ПЕРЕМЕННЫЕ ---
-        const BOARD_SIZE = 8; 
-        const EMPTY_COLOR = ''; 
-        
-        // Константы режимов
-        const NORMAL_MODE = 'normal';
+        // Инициализация Firebase (замените на свои ключи)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Константы
+        const BOARD_SIZE = 8;
+        const EMPTY_COLOR = '#dfe6e9';
         const TRAINING_MODE = 'training';
+        const NORMAL_MODE = 'normal';
 
-        let gameMode = NORMAL_MODE; 
-        let score = 0;
-        let gameBoard = []; 
- 
-        let lastHighlightedCells = []; 
-        let comboCounter = 0; 
-        let currentShapes = []; 
-        let draggedShapeIndex = -1; 
-        let dragOffset = { row: 0, col: 0 };
-        let currentBestPlacements = []; 
-        
-        // --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ВАЛИДАЦИИ И ЗАЩИТЫ ОТ ЧИТОВ ---
-        let gameStartTime = 0;
-        let totalBlocksPlaced = 0;
-        let totalLinesCleared = 0; 
-        // Переменные, которые вы хотите защитить от прямого изменения в консоли
-        const protectedVariables = ['score', 'gameBoard', 'gameMode', 'currentUser'];
-        // -----------------------------------------------------------------
-
-        // UI элементы
+        // Элементы DOM
         const gameBoardElement = document.getElementById('game-board');
         const scoreElement = document.getElementById('score');
-        const modeInfoElement = document.getElementById('mode-info');
-        const comboDisplay = document.getElementById('combo-display');
         const nextBlocksElement = document.getElementById('next-blocks');
-        const settingsModal = document.getElementById('settings-modal');
-        const modeModal = document.getElementById('mode-modal');
-        
+        const comboDisplay = document.getElementById('combo-display');
+        const modeInfoElement = document.getElementById('mode-info');
         const resetButton = document.getElementById('reset-button');
+        const modeButton = document.getElementById('mode-button');
         const settingsButton = document.getElementById('settings-button');
-        const modeButton = document.getElementById('mode-button'); 
-        const themeToggleButton = document.getElementById('theme-toggle-button');
+
+        // Модальные окна и их элементы
+        const modeModal = document.getElementById('mode-modal');
+        const authModal = document.getElementById('auth-modal');
+        const leaderboardModal = document.getElementById('leaderboard-modal');
+        const profileModal = document.getElementById('profile-modal');
+        const settingsModal = document.getElementById('settings-modal');
+        
         const closeButtons = document.querySelectorAll('.close-button');
         const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
-        
-        // === FIREBASE И АУТЕНТИФИКАЦИЯ UI ЭЛЕМЕНТЫ ===
-        const authModal = document.getElementById('auth-modal');
+
+        // Элементы Аутентификации
         const authForm = document.getElementById('auth-form');
-        const authEmailInput = document.getElementById('auth-email');
-        const authPasswordInput = document.getElementById('auth-password');
+        const authTitle = document.getElementById('auth-title');
         const authSubmitButton = document.getElementById('auth-submit-button');
         const toggleAuthButton = document.getElementById('toggle-auth-button');
-        const authTitle = document.getElementById('auth-title');
         const authMessage = document.getElementById('auth-message');
         const authButton = document.getElementById('auth-button');
-        
-        const leaderboardButton = document.getElementById('leaderboard-button');
-        const leaderboardModal = document.getElementById('leaderboard-modal');
-        const leaderboardList = document.getElementById('leaderboard-list');
-        
-        // === ПРОФИЛЬ UI ЭЛЕМЕНТЫ ===
-        const profileModal = document.getElementById('profile-modal');
+
+        // Элементы Профиля
         const profileTitle = document.getElementById('profile-title');
         const profileAvatar = document.getElementById('profile-avatar');
         const profileNickname = document.getElementById('profile-nickname');
@@ -635,6 +628,8 @@
         const editNicknameInput = document.getElementById('edit-nickname-input');
         const cancelEditButton = document.getElementById('cancel-edit-button');
         const profileMessage = document.getElementById('profile-message');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const themeToggleButton = document.getElementById('theme-toggle-button'); // НОВОЕ: Элемент кнопки темы
 
         let isRegistering = false;
         let currentUser = null;
@@ -643,104 +638,110 @@
         // Определение фигур
         const SHAPES = [
             // 1x1, 1x2, 2x1 (базовые)
-            { size: 1, color: '#ff6b6b', pattern: [[1]] }, 
+            { size: 1, color: '#ff6b6b', pattern: [[1]] },
             { size: 2, color: '#feca57', pattern: [[1,1]] },
             { size: 2, color: '#feca57', pattern: [[1],[1]] },
-            
- 
             // 2x2 квадрат, 1x3, 3x1 (базовые)
             { size: 4, color: '#54a0ff', pattern: [[1,1],[1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1,1,1]] },
             { size: 3, color: '#1dd1a1', pattern: [[1],[1],[1]] },
-            
             // 1x4, 4x1
- 
             { size: 4, color: '#a29bfe', pattern: [[1,1,1,1]] },
             { size: 4, color: '#a29bfe', pattern: [[1],[1],[1],[1]] },
-
             // L-образные (3 блока)
             { size: 3, color: '#ff9f43', pattern: [[1,0],[1,0],[1,1]] }, // L
-            { size: 3, color: '#ff9f43', pattern: [[1,1,1],[1,0,0]] }, // L
-      
-       
+            { size: 3, color: '#ff9f43', pattern: [[1,1,1],[1,0,0]] }, // L 
             // T-образные (4 блока)
-            { size: 4, color: '#fab1a0', pattern: [[0,1,0],[1,1,1],[0,0,0]] }, // T
-            { size: 4, color: '#fab1a0', pattern: [[1,0],[1,1],[1,0]] }, // T (вертикальный)
-
-            // Z/S-образные (3 блока)
-            { size: 3, color: '#d63031', pattern: [[1,1,0],[0,1,1]] }, // Z
-            { size: 3, color: '#d63031', pattern: [[0,1],[1,1],[1,0]] }, // S
-
-            // 3x3 квадрат
-            { size: 9, color: '#ff6b81', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
+            { size: 4, color: '#ff7675', pattern: [[0,1,0],[1,1,1],[0,0,0]] }, // T
+            // Угловые 3x3 (5 блоков) - для более сложного геймплея
+            { size: 5, color: '#9b59b6', pattern: [[1,1,1],[1,0,0],[1,0,0]] },
+            // S-образные
+            { size: 4, color: '#f39c12', pattern: [[0,1,1],[1,1,0]] },
+            // Увеличенные 2x3, 3x2
+            { size: 6, color: '#3498db', pattern: [[1,1],[1,1],[1,1]] },
+            { size: 6, color: '#3498db', pattern: [[1,1,1],[1,1,1]] },
         ];
 
-        // === 1. FIREBASE КОНФИГУРАЦИЯ И ИНИЦИАЛИЗАЦИЯ ===
-        // !!! ВАШ УНИКАЛЬНЫЙ КОНФИГ FIREBASE ВСТАВЛЕН ЗДЕСЬ !!!
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
-            authDomain: "block-blast-leader.firebaseapp.com",
-            projectId: "block-blast-leader",
-            storageBucket: "block-blast-leader.firebasestorage.app",
-            messagingSenderId: "435353232888",
-            appId: "1:435353232888:web:79480b0345c0209e8d220d",
-            
-            measurementId: "G-ZKCKX6NBKZ" 
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
+        // Состояние игры
+        let board = [];
+        let score = 0;
+        let comboCounter = 0;
+        let currentShapes = [];
+        let draggedShapeIndex = -1;
+        let dragOffset = { row: 0, col: 0 };
+        let gameMode = NORMAL_MODE; 
+        let currentBestPlacements = []; // Для ИИ
         
-        // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ И ОБРАБОТЧИКИ UI ---
+        // Переменные для защиты от читов
+        let gameStartTime = 0;
+        let totalBlocksPlaced = 0;
+        let totalLinesCleared = 0;
+        let protectedVariables = {};
 
-        function initializeGame(mode = NORMAL_MODE) {
-            gameMode = mode;
-            gameBoard = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
+        // --- ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ИГРЫ ---
+
+        function createBoard() {
             gameBoardElement.innerHTML = '';
-            
+            board = [];
             for (let r = 0; r < BOARD_SIZE; r++) {
+                board[r] = [];
                 for (let c = 0; c < BOARD_SIZE; c++) {
+                    board[r][c] = EMPTY_COLOR;
                     const cell = document.createElement('div');
-                    cell.id = `cell-${r}-${c}`; // Добавляем ID для удобства поиска
                     cell.classList.add('cell');
                     cell.dataset.row = r;
                     cell.dataset.col = c;
-                    cell.ondragover = handleDragOver;
-                    cell.ondragleave = handleDragLeave;
-                    cell.ondrop = handleDrop;
+                    cell.style.backgroundColor = EMPTY_COLOR;
                     gameBoardElement.appendChild(cell);
                 }
             }
-            score = 0;
+        }
+        
+        function selectMode(mode) {
+            if (mode === gameMode) return; 
+
+            // Сброс и инициализация игры для нового режима
+            initializeGame(mode);
+            
+            // Обновление состояния кнопок в модальном окне
+            modeSelectionButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                }
+            });
+
+            modeModal.style.display = 'none';
+        }
+
+        function initializeGame(mode) {
+            // Удаляем подсветку ИИ перед стартом
+            clearHighlight();
+            
+            gameMode = mode;
+            createBoard();
             updateScore(0, true); 
-            comboCounter = 0;
-            showCombo(0, true); 
-            currentShapes = []; 
-            nextBlocksElement.innerHTML = '';
-            
             modeInfoElement.textContent = gameMode === NORMAL_MODE ? 'Обычный режим.' : 'Режим Тренировки (ИИ).';
-            
+
             // СБРОС СТАТИСТИКИ ДЛЯ ВАЛИДАЦИИ
-            gameStartTime = Date.now(); 
-            totalBlocksPlaced = 0; 
-            totalLinesCleared = 0; 
-            
+            gameStartTime = Date.now();
+            totalBlocksPlaced = 0;
+            totalLinesCleared = 0;
+
             generateNextShapes();
-            
-            // Обновляем состояние кнопок режима
+
+            // Обновляем состояние кнопок режима (для случая, если режим изменился не через модальное окно)
             modeSelectionButtons.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.mode === gameMode) {
                     btn.classList.add('active');
                 }
             });
-            
+
             // Активируем защиту переменных ТОЛЬКО после инициализации
-            protectGameVariables(); 
+            protectGameVariables();
         }
-        
+
         // --- ФУНКЦИИ АНТИ-ЧИТА ---
 
         function blockUser(reason = 'Обнаружена попытка взаимодействия с консолью или изменения игры.') {
@@ -748,7 +749,6 @@
             // Визуальная блокировка
             gameContainer.style.pointerEvents = 'none';
             gameContainer.style.opacity = '0.1';
-            
             // Прекращение работы (жесткая блокировка)
             document.body.innerHTML = `
                 <div style="text-align: center; color: #ff6b6b; padding: 50px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);">
@@ -760,69 +760,73 @@
             // Остановка всех таймеров/проверок
             if (window.devtoolsInterval) clearInterval(window.devtoolsInterval);
         }
-        
+
         // Защита основных переменных
         function protectGameVariables() {
             // Защита от прямого изменения основных переменных через консоль
-            protectedVariables.forEach(varName => {
-                try {
-                    if (window[varName] !== undefined) {
-                        let originalValue = eval(varName); 
-                        
-                        // Удаляем старую защиту (если есть)
-                        if (Object.getOwnPropertyDescriptor(window, varName).set) {
-                           delete window[varName]; 
-                           window[varName] = originalValue; // Сброс
-                        }
-                        
-                        Object.defineProperty(window, varName, {
-                            get: function() { 
-                                return originalValue; 
-                            },
-                            set: function(val) {
-                                // Если новое значение отличается от оригинального, блокируем
-                                if (val !== originalValue) {
-                                    blockUser(`Попытка изменить защищенную переменную: ${varName}`);
-                                }
-                                originalValue = val;
-                            },
-                            configurable: true, // Должно быть true для перезапуска игры
-                            enumerable: true
-                        });
-                    }
-                } catch (e) {
-                    console.warn(`Cannot protect variable ${varName}:`, e);
+            protectedVariables = {
+                score: score,
+                totalBlocksPlaced: totalBlocksPlaced,
+                totalLinesCleared: totalLinesCleared,
+                gameMode: gameMode
+            };
+            // Проверка на открытие DevTools 
+            let devtoolsOpen = false;
+            const threshold = 160; 
+            const checkDevTools = () => {
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                const newDevtoolsOpen = widthThreshold || heightThreshold;
+                
+                if (newDevtoolsOpen && !devtoolsOpen) {
+                    blockUser('Обнаружено открытие консоли разработчика.');
                 }
-            });
+                devtoolsOpen = newDevtoolsOpen;
+            };
+            
+            if (window.devtoolsInterval) clearInterval(window.devtoolsInterval);
+            window.devtoolsInterval = setInterval(checkDevTools, 500); 
         }
 
-        // УДАЛЕНА ФУНКЦИЯ checkClientTampering:
-        // Агрессивная проверка размеров окна удалена, так как вызывала ложные срабатывания.
+        // Валидация изменений
+        function validateGameVariables() {
+            if (gameMode !== NORMAL_MODE) return true; // Пропускаем проверку в тренировочном режиме
+            
+            // Проверка на несанкционированное изменение переменных
+            if (score !== protectedVariables.score ||
+                totalBlocksPlaced !== protectedVariables.totalBlocksPlaced ||
+                totalLinesCleared !== protectedVariables.totalLinesCleared ||
+                gameMode !== protectedVariables.gameMode) 
+            {
+                blockUser('Обнаружено несанкционированное изменение игровых переменных.');
+                return false;
+            }
+            return true;
+        }
 
-        // --- КОНЕЦ ФУНКЦИЙ АНТИ-ЧИТА ---
+
+        // --- ФУНКЦИИ ФИГУР ---
 
         function createShapeElement(shapeData, index) {
-            // ... (existing function)
             const container = document.createElement('div');
             container.classList.add('shape-container');
             container.dataset.shapeIndex = index;
             container.draggable = true;
-            container.ondragstart = handleDragStart;
             
             const shape = document.createElement('div');
             shape.classList.add('shape');
             
-            const rows = shapeData.pattern.length;
-            const cols = shapeData.pattern[0].length;
+            const pattern = shapeData.pattern;
+            const rows = pattern.length;
+            const cols = pattern[0].length;
             
-            shape.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
             shape.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
+            
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     const block = document.createElement('div');
                     block.classList.add('block');
-                    if (shapeData.pattern[r][c] === 1) {
+                    if (pattern[r][c] === 1) {
                         block.style.backgroundColor = shapeData.color;
                     } else {
                         block.style.backgroundColor = 'transparent';
@@ -831,48 +835,55 @@
                     shape.appendChild(block);
                 }
             }
-
+            
             container.appendChild(shape);
+            
+            // Добавляем обработчики Drag-and-Drop
+            container.addEventListener('dragstart', handleDragStart);
+            container.addEventListener('dragend', handleDragEnd);
+            
             return container;
         }
 
         function generateNextShapes() {
-            // ... (existing function)
             nextBlocksElement.innerHTML = '';
             
+            // Убираем уже использованные фигуры
             const remainingShapes = currentShapes.filter(s => s !== null);
+            
             if (remainingShapes.length === 0) {
-                currentShapes = []; 
+                currentShapes = [];
                 for (let i = 0; i < 3; i++) {
                     const randomIndex = Math.floor(Math.random() * SHAPES.length);
                     currentShapes.push(SHAPES[randomIndex]);
                 }
             }
-            
-            currentBestPlacements = []; 
+
+            // Пересчитываем лучшие ходы для новых фигур
+            currentBestPlacements = [];
             for (let i = 0; i < 3; i++) {
                 const shapeData = currentShapes[i];
                 if (shapeData) {
                     const container = createShapeElement(shapeData, i);
                     nextBlocksElement.appendChild(container);
-
                     currentBestPlacements.push(findBestPlacement(shapeData));
                 } else {
-                    currentBestPlacements.push(null); 
+                    currentBestPlacements.push(null);
                 }
             }
-
+            
+            // Если режим тренировки, показываем подсказки
             if (gameMode === TRAINING_MODE) {
                 showAllAIHighlights();
             }
-            
+
             isGameOver();
         }
 
         // --- ФУНКЦИИ ИИ (AI) ---
 
         function shapeCanBePlaced(pattern) {
-             // ... (existing function)
+            // Проверка, можно ли вообще разместить фигуру на доске
             const rows = pattern.length;
             const cols = pattern[0].length;
             let offsetR = 0;
@@ -889,7 +900,6 @@
                 }
             }
             
-            // Перебираем все возможные позиции на доске
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const startR = r - offsetR;
@@ -902,129 +912,27 @@
             return false;
         }
 
-        function canPlaceShape(pattern, startRow, startCol) {
-            // ... (existing function)
-            const rows = pattern.length;
-            const cols = pattern[0].length;
 
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (pattern[r][c] === 1) {
-                        const boardR = startRow + r;
-                        const boardC = startCol + c;
-
-                        // Проверка границ
-                        if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) {
-                            return false;
-                        }
-                        // Проверка на занятую ячейку
-                        if (gameBoard[boardR][boardC] !== EMPTY_COLOR) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-
-        function calculateLineClearScore(board) {
-            // ... (existing function)
-            let clearedLines = 0;
-            // Проверка строк
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                if (board[r].every(color => color !== EMPTY_COLOR)) {
-                    clearedLines++;
-                }
-            }
-            // Проверка столбцов
-            for (let c = 0; c < BOARD_SIZE; c++) {
-                let isColFull = true;
-                for (let r = 0; r < BOARD_SIZE; r++) {
-                    if (board[r][c] === EMPTY_COLOR) {
-                        isColFull = false;
-                        break;
-                    }
-                }
-                if (isColFull) {
-                    clearedLines++;
-                }
-            }
-            // Награда за очистку
-            return clearedLines * clearedLines * 10; 
-        }
-
-        // Эвристика ИИ
-        function evaluateBoard(board) {
-            // ... (existing function)
-            let occupiedCells = 0;
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    if (board[r][c] !== EMPTY_COLOR) {
-                        occupiedCells++;
-                    }
-                }
-            }
-            
-            // Дополнительная эвристика: потенциал для очистки (строки/столбцы с 1-2 пустыми ячейками)
-            let potentialClears = 0;
-
-            // Потенциал строк
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                let filledInRow = 0;
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    if (board[r][c] !== EMPTY_COLOR) filledInRow++;
-                }
-                if (filledInRow === BOARD_SIZE - 1) {
-                    potentialClears += 2; // Очень высокий потенциал
-                } else if (filledInRow === BOARD_SIZE - 2) {
-                    potentialClears += 1; // Средний потенциал
-                }
-            }
-
-            // Потенциал столбцов
-            for (let c = 0; c < BOARD_SIZE; c++) {
-                let filledInCol = 0;
-                for (let r = 0; r < BOARD_SIZE; r++) {
-                    if (board[r][c] !== EMPTY_COLOR) filledInCol++;
-                }
-                if (filledInCol === BOARD_SIZE - 1) {
-                    potentialClears += 2;
-                } else if (filledInCol === BOARD_SIZE - 2) {
-                    potentialClears += 1;
-                }
-            }
-
-            // Минимизация занятых ячеек и максимизация потенциала
-            // Возвращаем (64 - occupiedCells) для максимизации пустоты
-            // Вес: Меньше занятых ячеек = Лучше
-            return (64 - occupiedCells) + potentialClears * 2; 
-        }
-
-        function checkPlacementScore(tempBoard, pattern, startRow, startCol) {
-            // ... (existing function)
-            const shapeBlocks = [];
-            for (let r = 0; r < pattern.length; r++) {
-                for (let c = 0; c < pattern[0].length; c++) {
-                    if (pattern[r][c] === 1) {
-                        shapeBlocks.push({ r: startRow + r, c: startCol + c });
-                    }
-                }
-            }
-
-            // Создаем временную доску для оценки состояния ПОСЛЕ размещения фигуры
-            const tempCells = JSON.parse(JSON.stringify(tempBoard));
-            shapeBlocks.forEach(b => { tempCells[b.r][b.c] = 'filled'; });
-            
+        function calculateClearingScore(tempCells) {
             let clearedLines = 0;
             const cellsToClear = new Set();
             
-            // Проверка линий
+            // Проверка строк
             for (let r = 0; r < BOARD_SIZE; r++) {
-                if (tempCells[r].every(color => color !== EMPTY_COLOR)) {
+                let isRowFull = true;
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (tempCells[r][c] === EMPTY_COLOR) {
+                        isRowFull = false;
+                        break;
+                    }
+                }
+                if (isRowFull) {
                     clearedLines++;
-                    for(let c = 0; c < BOARD_SIZE; c++) cellsToClear.add(`${r}-${c}`);
+                    for (let c = 0; c < BOARD_SIZE; c++) cellsToClear.add(`${r}-${c}`);
                 }
             }
+            
+            // Проверка столбцов
             for (let c = 0; c < BOARD_SIZE; c++) {
                 let isColFull = true;
                 for (let r = 0; r < BOARD_SIZE; r++) {
@@ -1038,32 +946,148 @@
                     for(let r = 0; r < BOARD_SIZE; r++) cellsToClear.add(`${r}-${c}`);
                 }
             }
+
+            // Награда за очистку
+            return clearedLines * clearedLines * 10;
+        }
+
+        // Эвристика ИИ
+        function evaluateBoard(board) {
+            let occupiedCells = 0;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] !== EMPTY_COLOR) {
+                        occupiedCells++;
+                    }
+                }
+            }
+
+            // Дополнительная эвристика: потенциал для очистки (строки/столбцы с 1-2 пустыми ячейками)
+            let potentialClears = 0;
             
+            // Потенциал строк
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                let filledInRow = 0;
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] !== EMPTY_COLOR) filledInRow++;
+                }
+                if (filledInRow === BOARD_SIZE - 1) {
+                    potentialClears += 2; // Очень высокий потенциал
+                } else if (filledInRow === BOARD_SIZE - 2) {
+                    potentialClears += 1; // Средний потенциал
+                }
+            }
+            
+            // Потенциал столбцов (аналогично)
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                let filledInCol = 0;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    if (board[r][c] !== EMPTY_COLOR) filledInCol++;
+                }
+                if (filledInCol === BOARD_SIZE - 1) {
+                    potentialClears += 2;
+                } else if (filledInCol === BOARD_SIZE - 2) {
+                    potentialClears += 1;
+                }
+            }
+
+            // Эвристика: "Ямы" - пустые ячейки под занятыми блоками
+            let pits = 0;
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                let occupiedFound = false;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    if (board[r][c] !== EMPTY_COLOR) {
+                        occupiedFound = true;
+                    } else if (occupiedFound) {
+                        pits++;
+                    }
+                }
+            }
+
+            // Общая оценка: (количество занятых блоков) + (потенциал очистки * 3) - (ямы * 4)
+            return occupiedCells + potentialClears * 3 - pits * 4;
+        }
+
+        // Функция оценки хода
+        function scorePlacement(pattern, startRow, startCol) {
+            if (!canPlaceShape(pattern, startRow, startCol)) {
+                return -Infinity;
+            }
+
+            // Создаем временную доску и размещаем фигуру
+            const tempCells = JSON.parse(JSON.stringify(board));
+            for (let r = 0; r < pattern.length; r++) {
+                for (let c = 0; c < pattern[0].length; c++) {
+                    if (pattern[r][c] === 1) {
+                        const boardR = startRow + r;
+                        const boardC = startCol + c;
+                        // Проверка на выход за границы уже была в canPlaceShape, но для безопасности
+                        if (boardR >= 0 && boardR < BOARD_SIZE && boardC >= 0 && boardC < BOARD_SIZE) {
+                            tempCells[boardR][boardC] = '#000000'; // Любой не-EMPTY_COLOR
+                        }
+                    }
+                }
+            }
+
+            let clearedLines = 0;
+            const cellsToClear = new Set();
+            
+            // Проверка строк и столбцов на очистку
+            // Проверка строк
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                let isRowFull = true;
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (tempCells[r][c] === EMPTY_COLOR) {
+                        isRowFull = false;
+                        break;
+                    }
+                }
+                if (isRowFull) {
+                    clearedLines++;
+                    for (let c = 0; c < BOARD_SIZE; c++) cellsToClear.add(`${r}-${c}`);
+                }
+            }
+            
+            // Проверка столбцов
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                let isColFull = true;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    if (tempCells[r][c] === EMPTY_COLOR) {
+                        isColFull = false;
+                        break;
+                    }
+                }
+                if (isColFull) {
+                    clearedLines++;
+                    for(let r = 0; r < BOARD_SIZE; r++) cellsToClear.add(`${r}-${c}`);
+                }
+            }
+
             // Временная очистка для оценки состояния доски
             const nextBoard = JSON.parse(JSON.stringify(tempCells));
             cellsToClear.forEach(key => {
                 const [r, c] = key.split('-').map(Number);
                 nextBoard[r][c] = EMPTY_COLOR;
             });
-            
+
             // Оценка: (Очки за очистку) + (Оценка будущей доски)
             const clearingScore = clearedLines > 0 ? (clearedLines * clearedLines * 10) : 0;
             const nextBoardEvaluation = evaluateBoard(nextBoard);
-            
-            // Наша общая оценка: (Оценка доски * Вес) + (Очки за очистку)
+
+            // Наша общая оценка: (Оценка доски * Вес) + (Очки за очистку) 
             // Мы хотим максимизировать это число.
-            return nextBoardEvaluation + clearingScore * 5; 
+            return nextBoardEvaluation + clearingScore * 5;
         }
 
-
         function findBestPlacement(shapeData) {
-            // ... (existing function)
             let bestScore = -Infinity;
             let bestPlacement = null;
+            
             const pattern = shapeData.pattern;
             const rows = pattern.length;
             const cols = pattern[0].length;
             
+            // Находим смещение первой занятой ячейки фигуры
             let offsetR = 0;
             let offsetC = 0;
             outer: for (let r = 0; r < rows; r++) {
@@ -1075,58 +1099,61 @@
                     }
                 }
             }
-            
-            // Перебираем все возможные стартовые позиции
-            for (let startR = -rows + 1; startR < BOARD_SIZE; startR++) {
-                for (let startC = -cols + 1; startC < BOARD_SIZE; startC++) {
+
+            // Перебираем все возможные позиции
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const startR = r - offsetR;
+                    const startC = c - offsetC;
+                    
                     if (canPlaceShape(pattern, startR, startC)) {
-                        const score = checkPlacementScore(gameBoard, pattern, startR, startC);
+                        const score = scorePlacement(pattern, startR, startC);
+                        
                         if (score > bestScore) {
                             bestScore = score;
-                            bestPlacement = { startRow: startR, startCol: startC, offsetR: offsetR, offsetC: offsetC };
+                            bestPlacement = { startR: startR, startC: startC, shapeIndex: currentShapes.indexOf(shapeData) };
                         }
                     }
                 }
             }
-            return bestPlacement;
+
+            return bestPlacement; // { startR, startC, shapeIndex } или null
         }
 
+        let lastHighlightedCells = [];
 
-        function highlightAI(placement, shapeData, shapeIndex) {
-            // ... (existing function)
+        function highlightAI(placement, shapeData, index) {
+            const { startR, startC } = placement;
             const pattern = shapeData.pattern;
-            const color = shapeData.color;
+            const colorClass = `ai-highlight-${index}`;
+            const targetClass = `ai-target-${index}`;
             
-            // Подсвечиваем саму фигуру в панели
-            const shapeContainer = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
+            // Подсвечиваем контейнер фигуры
+            const shapeContainer = document.querySelector(`.shape-container[data-shape-index="${index}"]`);
             if (shapeContainer) {
-                shapeContainer.classList.add(`ai-target-${shapeIndex}`);
+                shapeContainer.classList.add(targetClass);
             }
 
-            if (!placement) return;
-
-            // Подсвечиваем клетки на доске
+            // Подсвечиваем ячейки на доске
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
                     if (pattern[r][c] === 1) {
-                        const boardR = placement.startRow + r;
-                        const boardC = placement.startCol + c;
-
-                        const cell = document.getElementById(`cell-${boardR}-${boardC}`);
+                        const boardR = startR + r;
+                        const boardC = startC + c;
+                        const cell = gameBoardElement.querySelector(`[data-row="${boardR}"][data-col="${boardC}"]`);
+                        
                         if (cell) {
-                            cell.classList.add(`ai-highlight-${shapeIndex}`);
-                            cell.style.backgroundColor = color;
-                            cell.style.opacity = '0.6';
+                            cell.classList.add(colorClass);
                             lastHighlightedCells.push(cell);
                         }
                     }
                 }
             }
         }
-
+        
         function showAllAIHighlights() {
-            // ... (existing function)
             clearHighlight();
+            // Сначала убираем подсветку с контейнеров фигур, чтобы не было наложения
             document.querySelectorAll('.shape-container').forEach(c => {
                 c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
@@ -1139,9 +1166,8 @@
                 }
             });
         }
-        
+
         function clearHighlight() {
-            // ... (existing function)
             lastHighlightedCells.forEach(cell => {
                 cell.classList.remove('ai-highlight-0', 'ai-highlight-1', 'ai-highlight-2');
                 if (!cell.classList.contains('filled')) {
@@ -1150,30 +1176,30 @@
                 cell.style.opacity = '1';
             });
             lastHighlightedCells = [];
-            
             // Убираем подсветку с контейнеров фигур
             document.querySelectorAll('.shape-container').forEach(c => {
-                 c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
+                c.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
         }
+
 
         // --- ОБРАБОТЧИКИ DRAG AND DROP ---
 
         function handleDragStart(event) {
-            // ... (existing function)
             clearHighlight();
-
             const container = event.currentTarget;
             const shapeIndex = parseInt(container.dataset.shapeIndex);
             draggedShapeIndex = shapeIndex;
             
             const shapeData = currentShapes[shapeIndex];
             if (!shapeData) return;
-
+            
+            // Вычисляем смещение от верхнего левого угла фигуры до точки клика
             let firstBlockR = 0;
             let firstBlockC = 0;
             const pattern = shapeData.pattern;
             const cols = pattern[0].length;
+            
             outer: for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < cols; c++) {
                     if (pattern[r][c] === 1) {
@@ -1183,74 +1209,144 @@
                     }
                 }
             }
-            dragOffset = { row: firstBlockR, col: firstBlockC };
-
-            container.classList.add('is-dragging');
+            
+            // Предполагаем, что drag-точка — это центр фигуры или просто верхний левый угол блока
+            const dragPoint = event.target.closest('.block'); 
+            if (dragPoint) {
+                // Найдем координаты блока относительно всей фигуры
+                const blocks = Array.from(container.querySelectorAll('.block'));
+                const blockIndex = blocks.indexOf(dragPoint);
+                if (blockIndex !== -1) {
+                    const blockR = Math.floor(blockIndex / cols);
+                    const blockC = blockIndex % cols;
+                    
+                    // Смещение для корректного размещения: разница между кликнутым блоком и верхним левым блоком фигуры (0,0)
+                    dragOffset.row = blockR - firstBlockR;
+                    dragOffset.col = blockC - firstBlockC;
+                }
+            } else {
+                 dragOffset = { row: 0, col: 0 };
+            }
+            
             event.dataTransfer.setData('text/plain', shapeIndex);
-            event.dataTransfer.setDragImage(container, 37, 37); 
+            // Добавляем класс для скрытия перетаскиваемой фигуры
+            container.classList.add('is-dragging');
+            
+            // Если включен режим тренировки, показываем подсказку для этой фигуры
+            if (gameMode === TRAINING_MODE) {
+                const placement = currentBestPlacements[shapeIndex];
+                if (placement) {
+                    highlightAI(placement, shapeData, shapeIndex);
+                }
+            }
         }
 
-        function highlightCells(pattern, startRow, startCol, color, isPlacable) {
-            // ... (existing function)
-            clearHighlight();
+        function handleDragOver(event) {
+            event.preventDefault(); // Разрешаем drop
+            const targetCell = event.target.closest('.cell');
+            if (!targetCell || draggedShapeIndex === -1) return;
+            
+            const cellRow = parseInt(targetCell.dataset.row);
+            const cellCol = parseInt(targetCell.dataset.col);
+            const startRow = cellRow - dragOffset.row;
+            const startCol = cellCol - dragOffset.col;
+
+            const shapeData = currentShapes[draggedShapeIndex];
+            if (!shapeData) return;
+            
+            previewPlacement(shapeData, startRow, startCol);
+        }
+
+        function handleDragEnter(event) {
+            event.preventDefault();
+        }
+
+        function handleDragLeave(event) {
+            // Убеждаемся, что курсор покинул доску
+            if (event.target.id === 'game-board' || event.target.closest('#game-board')) {
+                // Очистка только если мы вышли из игровой доски, а не из ячейки в ячейку
+                if (event.relatedTarget && !event.relatedTarget.closest('#game-board')) {
+                    clearPreview();
+                }
+            }
+        }
+
+        function canPlaceShape(pattern, startRow, startCol) {
+            const rows = pattern.length;
+            const cols = pattern[0].length;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (pattern[r][c] === 1) {
+                        const boardR = startRow + r;
+                        const boardC = startCol + c;
+
+                        // Проверка на выход за границы
+                        if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) {
+                            return false;
+                        }
+
+                        // Проверка, что ячейка не занята
+                        if (board[boardR][boardC] !== EMPTY_COLOR) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function previewPlacement(shapeData, startRow, startCol) {
+            clearPreview();
+            
+            if (!canPlaceShape(shapeData.pattern, startRow, startCol)) {
+                return;
+            }
+
+            const pattern = shapeData.pattern;
+            const color = shapeData.color;
+
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
                     if (pattern[r][c] === 1) {
                         const boardR = startRow + r;
                         const boardC = startCol + c;
-
-                        const cell = document.getElementById(`cell-${boardR}-${boardC}`);
+                        const cell = gameBoardElement.querySelector(`[data-row="${boardR}"][data-col="${boardC}"]`);
+                        
                         if (cell) {
                             cell.style.backgroundColor = color;
-                            cell.style.opacity = isPlacable ? '0.3' : '0.1';
-                            cell.style.border = isPlacable ? '1px solid ' + color : '1px solid #e74c3c';
-                            lastHighlightedCells.push(cell);
+                            cell.style.opacity = '0.5'; // Полупрозрачный предварительный просмотр
                         }
                     }
                 }
             }
         }
 
-        function handleDragOver(event) {
-            // ... (existing function)
-            event.preventDefault(); 
-            clearHighlight(); 
-
-            const targetCell = event.target.closest('.cell');
-            if (!targetCell) return;
-
-            const cellRow = parseInt(targetCell.dataset.row);
-            const cellCol = parseInt(targetCell.dataset.col);
-
-            const startRow = cellRow - dragOffset.row;
-            const startCol = cellCol - dragOffset.col;
-            const shapeData = currentShapes[draggedShapeIndex];
-            if (!shapeData) return;
-
-            const canPlace = canPlaceShape(shapeData.pattern, startRow, startCol);
-            const highlightColor = canPlace ? shapeData.color : '#e74c3c';
-            highlightCells(shapeData.pattern, startRow, startCol, highlightColor, canPlace);
+        function clearPreview() {
+            // Очистка всех полупрозрачных ячеек
+            document.querySelectorAll('.cell').forEach(cell => {
+                if (!cell.classList.contains('filled') && cell.style.opacity === '0.5') {
+                    cell.style.backgroundColor = EMPTY_COLOR;
+                    cell.style.opacity = '1';
+                }
+            });
         }
 
-        function handleDragLeave(event) {
-            // ... (existing function)
-            if (event.relatedTarget && event.relatedTarget.closest('#game-board')) {
-            } else {
-                clearHighlight();
-            }
+        function handleDragEnd(event) {
+             const container = event.currentTarget;
+             container.classList.remove('is-dragging');
+             clearPreview(); // Очистка превью в случае неудачного броска
         }
 
         function handleDrop(event) {
-            // ... (existing function)
             event.preventDefault();
-            clearHighlight();
-            
+            clearPreview(); // Очистка превью
+
             const targetCell = event.target.closest('.cell');
-            if (!targetCell) return;
-            
+            if (!targetCell || draggedShapeIndex === -1) return;
+
             const cellRow = parseInt(targetCell.dataset.row);
             const cellCol = parseInt(targetCell.dataset.col);
-
             const startRow = cellRow - dragOffset.row;
             const startCol = cellCol - dragOffset.col;
             
@@ -1258,29 +1354,32 @@
             const shapeData = currentShapes[shapeIndex];
 
             if (!shapeData) return;
-            
+
             if (canPlaceShape(shapeData.pattern, startRow, startCol)) {
                 placeShape(shapeData, startRow, startCol);
-                
                 currentShapes[shapeIndex] = null;
+                
+                // Удаляем контейнер фигуры из панели
                 const container = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
                 if(container) container.remove();
                 
                 checkAndClearLines();
-                
+
                 if (currentShapes.every(s => s === null)) {
                     generateNextShapes();
                 } else if (gameMode === TRAINING_MODE) {
+                    // Пересчитываем лучшие ходы для оставшихся фигур
                     currentBestPlacements = currentShapes.map(s => s ? findBestPlacement(s) : null);
                     showAllAIHighlights();
                 }
-                
-                isGameOver();
 
+                isGameOver();
             } else {
-                const container = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
-                if(container) container.classList.remove('is-dragging');
+                 // Если не удалось разместить, возвращаем фигуру в нормальное состояние
+                 const container = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
+                 if(container) container.classList.remove('is-dragging');
             }
+
             draggedShapeIndex = -1;
             dragOffset = { row: 0, col: 0 };
         }
@@ -1288,111 +1387,128 @@
         function placeShape(shapeData, startRow, startCol) {
             const pattern = shapeData.pattern;
             const color = shapeData.color;
-            let blocksPlaced = 0;
-
+            let blocksPlaced = 0; 
+            
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
                     if (pattern[r][c] === 1) {
                         const boardR = startRow + r;
                         const boardC = startCol + c;
 
-                        gameBoard[boardR][boardC] = color;
-                        
-                        const cell = document.getElementById(`cell-${boardR}-${boardC}`);
-                        cell.style.backgroundColor = color;
-                        cell.classList.add('filled');
-                        blocksPlaced++;
+                        if (boardR >= 0 && boardR < BOARD_SIZE && boardC >= 0 && boardC < BOARD_SIZE) {
+                            board[boardR][boardC] = color;
+                            const cell = gameBoardElement.querySelector(`[data-row="${boardR}"][data-col="${boardC}"]`);
+                            if (cell) {
+                                cell.style.backgroundColor = color;
+                                cell.classList.add('filled');
+                                cell.style.opacity = '1';
+                                blocksPlaced++;
+                            }
+                        }
                     }
                 }
             }
+            
+            totalBlocksPlaced += blocksPlaced;
             updateScore(blocksPlaced);
-            totalBlocksPlaced += blocksPlaced; // УЧЕТ ДЛЯ ВАЛИДАЦИИ
         }
 
         function checkAndClearLines() {
-            let clearedLinesCount = 0;
             const cellsToClear = new Set();
+            let clearedLines = 0;
 
             // Проверка строк
             for (let r = 0; r < BOARD_SIZE; r++) {
-                if (gameBoard[r].every(color => color !== EMPTY_COLOR)) {
-                    clearedLinesCount++;
-                    for(let c = 0; c < BOARD_SIZE; c++) cellsToClear.add({r: r, c: c});
+                let isRowFull = true;
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] === EMPTY_COLOR) {
+                        isRowFull = false;
+                        break;
+                    }
+                }
+                if (isRowFull) {
+                    clearedLines++;
+                    for (let c = 0; c < BOARD_SIZE; c++) cellsToClear.add(`${r}-${c}`);
                 }
             }
-
+            
             // Проверка столбцов
             for (let c = 0; c < BOARD_SIZE; c++) {
                 let isColFull = true;
                 for (let r = 0; r < BOARD_SIZE; r++) {
-                    if (gameBoard[r][c] === EMPTY_COLOR) {
+                    if (board[r][c] === EMPTY_COLOR) {
                         isColFull = false;
                         break;
                     }
                 }
                 if (isColFull) {
-                    clearedLinesCount++;
-                    for(let r = 0; r < BOARD_SIZE; r++) cellsToClear.add({r: r, c: c});
+                    clearedLines++;
+                    for(let r = 0; r < BOARD_SIZE; r++) cellsToClear.add(`${r}-${c}`);
                 }
             }
 
-            if (clearedLinesCount > 0) {
-                // Анимация очистки
-                cellsToClear.forEach(pos => {
-                    const cell = document.getElementById(`cell-${pos.r}-${pos.c}`);
+            if (clearedLines > 0) {
+                totalLinesCleared += clearedLines;
+                const points = clearedLines * 10; // Базовые очки за линии
+                updateScore(points, false, clearedLines);
+
+                // Анимация и очистка ячеек
+                cellsToClear.forEach(key => {
+                    const [r, c] = key.split('-').map(Number);
+                    const cell = gameBoardElement.querySelector(`[data-row="${r}"][data-col="${c}"]`);
                     if (cell) {
                         cell.classList.add('clearing');
                     }
                 });
-                
-                totalLinesCleared += clearedLinesCount; // УЧЕТ ДЛЯ ВАЛИДАЦИИ
 
-                // Обновление состояния доски после анимации
+                // Ждем окончания анимации, затем очищаем
                 setTimeout(() => {
-                    cellsToClear.forEach(pos => {
-                        const cell = document.getElementById(`cell-${pos.r}-${pos.c}`);
+                    cellsToClear.forEach(key => {
+                        const [r, c] = key.split('-').map(Number);
+                        const cell = gameBoardElement.querySelector(`[data-row="${r}"][data-col="${c}"]`);
                         if (cell) {
                             cell.classList.remove('filled', 'clearing');
                             cell.style.backgroundColor = EMPTY_COLOR;
+                            cell.style.opacity = '1';
                         }
-                        gameBoard[pos.r][pos.c] = EMPTY_COLOR;
+                        board[r][c] = EMPTY_COLOR;
                     });
                     
-                    updateScore(clearedLinesCount * BOARD_SIZE, false, clearedLinesCount); 
-
-                    if (gameMode === TRAINING_MODE) {
-                        currentBestPlacements = currentShapes.map(s => s ? findBestPlacement(s) : null);
-                        showAllAIHighlights();
-                    }
-                    isGameOver(); 
-                }, 400); 
-            } else {
-                showCombo(0, true); 
+                    // Обновляем защищенные переменные после очистки
+                    protectGameVariables();
+                }, 400); // 400ms = длительность анимации
             }
         }
 
         function updateScore(points, reset = false, linesCleared = 0) {
-            // ... (existing function)
             if (reset) {
                 score = points;
                 comboCounter = 0;
                 showCombo(0, true);
             } else {
+                if (!validateGameVariables()) return; // Проверка на чит
+                
                 let baseScore = points;
+
+                // Логика комбо: за каждую очищенную линию в одном ходе
                 if (linesCleared > 0) {
                     comboCounter++;
+                    // Дополнительные очки за комбо: (комбо - 1) * 10 
                     baseScore += (comboCounter - 1) * 10; 
                 } else {
-                    comboCounter = 0;
+                    comboCounter = 0; 
                 }
+
                 score += baseScore;
                 showCombo(comboCounter, false, linesCleared);
+
+                // Обновляем защищенную переменную score
+                protectedVariables.score = score;
             }
             scoreElement.textContent = score;
         }
-
+        
         function showCombo(count, reset, linesCleared) {
-            // ... (existing function)
             if (reset || count <= 1) {
                 comboDisplay.style.opacity = 0;
             } else {
@@ -1402,12 +1518,13 @@
         }
 
         function isShapeImpossible(shapeData) {
-            // ... (existing function)
             if (!shapeData) return true;
+            
             const pattern = shapeData.pattern;
             const rows = pattern.length;
             const cols = pattern[0].length;
             
+            // Находим смещение первой занятой ячейки фигуры
             let offsetR = 0;
             let offsetC = 0;
             outer: for (let r = 0; r < rows; r++) {
@@ -1424,6 +1541,7 @@
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const startR = r - offsetR;
                     const startC = c - offsetC;
+
                     if (canPlaceShape(pattern, startR, startC)) {
                         return false;
                     }
@@ -1432,159 +1550,137 @@
             return true;
         }
 
-
         function isGameOver() {
-            const remainingShapes = currentShapes.filter(shape => shape !== null);
-            if (remainingShapes.length === 0) return false;
-
-            if (remainingShapes.every(isShapeImpossible)) {
-                alert(`Игра окончена! Ваш финальный счет: ${score}`);
-                if (gameMode === NORMAL_MODE) {
-                    const gameDuration = (Date.now() - gameStartTime) / 1000; // Длительность в секундах
-                    saveHighScore(score, totalBlocksPlaced, totalLinesCleared, gameDuration); // ПЕРЕДАЧА ВАЛИДАЦИОННЫХ ПАРАМЕТРОВ
+            // Проверка, можно ли разместить хоть одну из оставшихся фигур
+            const canPlay = currentShapes.some(shapeData => shapeData && !isShapeImpossible(shapeData));
+            
+            if (!canPlay) {
+                // Если счет не нулевой и это Обычный режим, сохраняем результат
+                if (score > 0 && gameMode === NORMAL_MODE) {
+                    saveHighScore(score, totalBlocksPlaced, totalLinesCleared, Date.now() - gameStartTime);
                 }
+                
+                // Визуальное уведомление о конце игры
+                setTimeout(() => {
+                    alert(`Игра окончена! Ваш финальный счет: ${score}`);
+                    initializeGame(gameMode); // Начать новую игру
+                }, 500);
+            }
+        }
+
+        // --- ФУНКЦИИ FIREBASE (АУТЕНТИФИКАЦИЯ, СЧЕТ) ---
+        
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                authButton.textContent = `Профиль (${user.displayName || (user.email ? user.email.split('@')[0] : 'Anon')})`;
+                await fetchProfile(user.uid); // Загружаем данные профиля текущего пользователя
+            } else {
+                authButton.textContent = 'Вход/Регистрация';
+            }
+        });
+
+        async function isNicknameUnique(nickname, currentUserId) {
+            const snapshot = await db.collection("users").where("nickname", "==", nickname).get();
+            if (snapshot.empty) {
                 return true;
             }
-            return false;
+            // Если нашли пользователя с таким никнеймом, проверяем, это не текущий ли пользователь
+            const foundUserId = snapshot.docs[0].id;
+            return foundUserId === currentUserId;
         }
-
-        // === 2. ФУНКЦИИ FIREBASE/АУТЕНТИФИКАЦИИ ===
-
-        function updateAuthUI(user) {
-            // ... (existing function)
-            currentUser = user;
-            if (user) { // Вход выполнен
-                const emailPrefix = (user.email || 'Нет Email').split('@')[0];
-                const displayName = user.displayName || emailPrefix;
-                authButton.textContent = `Выйти (${displayName})`;
-                authButton.onclick = handleLogout;
-                fetchProfile(user.uid);
-            } else { // Выход выполнен
-                authButton.textContent = 'Вход/Регистрация';
-                authButton.onclick = () => authModal.style.display = 'block';
-            }
-        }
-
-        auth.onAuthStateChanged(updateAuthUI);
 
         async function handleAuthSubmit(event) {
-            // ... (existing function)
             event.preventDefault();
-            authMessage.textContent = 'Загрузка...';
-            const email = authEmailInput.value;
-            const password = authPasswordInput.value;
+            authMessage.textContent = 'Обработка...';
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
 
             try {
                 if (isRegistering) {
                     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                     const user = userCredential.user;
-                    
                     // Установка никнейма по умолчанию
                     const defaultNickname = email.split('@')[0];
                     
-                    // Проверка на уникальность никнейма по умолчанию 
+                    // Проверка на уникальность никнейма по умолчанию
                     if (!(await isNicknameUnique(defaultNickname, user.uid))) {
                         console.warn('Никнейм по умолчанию занят. Пользователю нужно будет его сменить.');
                     }
-                    
+
                     // Создаем запись в Firestore
                     await db.collection("users").doc(user.uid).set({
                         email: user.email,
                         highScore: 0,
                         nickname: defaultNickname,
-                        avatarUrl: '' 
+                        avatarUrl: ''
                     });
-                    await user.updateProfile({
-                         displayName: defaultNickname
-                    });
+
+                    await user.updateProfile({ displayName: defaultNickname });
+
                     authMessage.textContent = 'Регистрация успешна! Выполнен автоматический вход.';
+
                 } else {
                     await auth.signInWithEmailAndPassword(email, password);
                     authMessage.textContent = 'Вход выполнен!';
                 }
+                
                 authModal.style.display = 'none';
-                authMessage.textContent = ''; 
+                authMessage.textContent = ''; // Очистка сообщения при закрытии
             } catch (error) {
                 authMessage.textContent = `Ошибка: ${error.message}`;
                 console.error("Ошибка:", error);
             }
         }
 
-        authForm.onsubmit = handleAuthSubmit;
-
-        toggleAuthButton.onclick = () => {
-            // ... (existing function)
-            isRegistering = !isRegistering;
-            authTitle.textContent = isRegistering ? 'Регистрация' : 'Вход';
-            authSubmitButton.textContent = isRegistering ? 'Зарегистрироваться' : 'Войти';
-            toggleAuthButton.textContent = isRegistering ? 'Уже есть аккаунт?' : 'Нужна регистрация?';
-            authMessage.textContent = '';
-        };
-
         function handleLogout() {
-            // ... (existing function)
             auth.signOut().then(() => {
                 console.log('Выход выполнен.');
+                // Обновляем кнопку входа
+                authButton.textContent = 'Вход/Регистрация';
             }).catch((error) => {
                 console.error('Ошибка выхода:', error);
             });
         }
-        
-        // ИЗМЕНЕНА: Добавлены параметры для валидации счета
-        async function saveHighScore(finalScore, blocks, lines, duration) { 
-            if (!currentUser || finalScore === 0) return;
 
+        // ИЗМЕНЕНА: Добавлены параметры для валидации счета
+        async function saveHighScore(finalScore, blocks, lines, duration) {
+            if (!currentUser || finalScore === 0) return;
+            
             const userRef = db.collection("users").doc(currentUser.uid);
 
-            // Объект с данными для серверной валидации
+            // Объект с данными для серверной валидации (на случай, если бы был облачный скрипт)
             const validationData = {
                 score: finalScore,
                 blocks: blocks,
                 lines: lines,
-                duration: duration,
-                blocksPerMinute: duration > 0 ? blocks / (duration / 60) : blocks * 60
+                duration: duration
             };
-
+            
             try {
-                await db.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(userRef);
-
-                    if (!doc.exists) {
-                        const defaultNickname = (currentUser.email || 'Anon').split('@')[0];
-                        transaction.set(userRef, { 
-                            email: currentUser.email, 
-                            highScore: finalScore, 
-                            nickname: currentUser.displayName || defaultNickname,
-                            lastGameStats: validationData // СОХРАНЯЕМ СТАТИСТИКУ
-                        });
-                        alert(`Новый рекорд ${finalScore} сохранен!`);
-                        return;
-                    }
-
+                // Получаем текущий рекорд
+                const doc = await userRef.get();
+                if (doc.exists) {
                     const currentHighScore = doc.data().highScore || 0;
-
+                    
                     if (finalScore > currentHighScore) {
-                        transaction.update(userRef, { 
-                            highScore: finalScore,
-                            lastGameStats: validationData // СОХРАНЯЕМ СТАТИСТИКУ
+                        await userRef.update({
+                            highScore: finalScore
+                            // Здесь можно добавить статистику: totalGames, totalBlocks, etc.
                         });
-                        alert(`Новый рекорд ${finalScore} сохранен!`);
-                    } else {
-                        console.log(`Счет ${finalScore} не превысил текущий рекорд ${currentHighScore}.`);
+                        console.log(`Новый рекорд сохранен: ${finalScore}`);
                     }
-                });
+                }
             } catch (error) {
-                console.error("Ошибка транзакции сохранения счета: ", error);
-                alert("Не удалось сохранить счет. Проверьте соединение или правила Firestore.");
+                console.error("Ошибка сохранения рекорда:", error);
             }
         }
 
-        async function fetchLeaderboard() {
-            // ... (existing function)
-            leaderboardModal.style.display = 'block';
+        async function loadLeaderboard() {
             leaderboardList.innerHTML = '<li>Загрузка...</li>';
             
             try {
+                // Запрашиваем 10 лучших результатов
                 const snapshot = await db.collection("users")
                     .orderBy("highScore", "desc")
                     .limit(10)
@@ -1608,12 +1704,13 @@
                         rank++;
                     });
                     
+                    // NEW: Добавляем обработчики кликов на кнопки "Профиль"
                     document.querySelectorAll('.view-profile-button').forEach(button => {
                         button.onclick = (e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation(); // Остановить всплытие
                             const userId = e.target.dataset.userId;
-                            leaderboardModal.style.display = 'none'; 
-                            showProfileModal(userId); 
+                            leaderboardModal.style.display = 'none'; // Закрыть таблицу
+                            showProfileModal(userId); // Открыть профиль игрока
                         };
                     });
                 }
@@ -1622,193 +1719,174 @@
                 leaderboardList.innerHTML = '<li>Не удалось загрузить таблицу. Проверьте соединение и правила Firestore.</li>';
             }
         }
-        
+
         async function fetchProfile(userId) {
-             // ... (existing function)
-             const userRef = db.collection("users").doc(userId);
-             try {
-                 const doc = await userRef.get();
-                 if (doc.exists) {
-                     return doc.data();
-                 }
-                 const user = auth.currentUser;
-                 if (user && user.uid === userId) {
-                     const defaultNickname = (user.email || 'Anon').split('@')[0];
-                     const newProfile = {
-                         email: user.email,
-                         highScore: 0,
-                         nickname: user.displayName || defaultNickname,
-                         avatarUrl: ''
-                     };
-                     await userRef.set(newProfile);
-                     return newProfile;
-                 }
-                 return null;
-             } catch (error) {
-                 console.error("Ошибка при получении профиля:", error);
-                 return null;
-             }
-         }
-
-         async function showProfileModal(userId) {
-             // ... (existing function)
-             profileModal.style.display = 'block';
-             profileTitle.textContent = 'Загрузка профиля...';
-             profileMessage.textContent = '';
-             editProfileForm.style.display = 'none';
-             editProfileButton.style.display = 'none';
-             currentProfileUserId = userId; 
-
-             const profileData = await fetchProfile(userId);
-
-             if (profileData) {
-                 const isOwnProfile = currentUser && currentUser.uid === userId;
-                 const nickname = profileData.nickname || (profileData.email ? profileData.email.split('@')[0] : 'Anon');
-                 const email = profileData.email || 'Скрыто';
-
-                 profileTitle.textContent = `Профиль: ${nickname}`;
-                 profileNickname.textContent = nickname;
-                 profileEmail.textContent = isOwnProfile ? email : 'Скрыто'; 
-                 profileHighScore.textContent = profileData.highScore || 0;
-                 profileAvatar.src = profileData.avatarUrl || 'https://via.placeholder.com/80/6c5ce7/ffffff?text=U'; 
-
-                 if (isOwnProfile) {
-                     editProfileButton.style.display = 'block';
-                     editProfileButton.textContent = 'Редактировать профиль';
-                 } else {
-                     editProfileButton.style.display = 'none';
-                 }
-             } else {
-                 profileTitle.textContent = 'Профиль не найден';
-                 profileNickname.textContent = 'N/A';
-                 profileEmail.textContent = 'N/A';
-                 profileHighScore.textContent = 'N/A';
-                 profileAvatar.src = 'https://via.placeholder.com/80/e74c3c/ffffff?text=X';
-             }
-         }
-         
-         function toggleEditMode(isEditing) {
-             // ... (existing function)
-             const isOwnProfile = currentUser && currentUser.uid === currentProfileUserId;
-
-             if (!isOwnProfile) return;
-
-             if (isEditing) {
-                 editNicknameInput.value = profileNickname.textContent;
-                 editProfileForm.style.display = 'block';
-                 editProfileButton.style.display = 'none';
-             } else {
-                 editProfileForm.style.display = 'none';
-                 editProfileButton.style.display = 'block';
-             }
-             profileMessage.textContent = '';
-         }
-         
-         // ФУНКЦИЯ: Проверка на уникальность никнейма
-         async function isNicknameUnique(nickname, currentUserId) {
-            const snapshot = await db.collection("users")
-                .where("nickname", "==", nickname)
-                .limit(1)
-                .get();
+            const userRef = db.collection("users").doc(userId);
+            try {
+                const doc = await userRef.get();
+                if (doc.exists) {
+                    return doc.data();
+                } 
                 
-            if (snapshot.empty) {
-                return true;
+                // Если профиль не существует, создаем его для текущего пользователя
+                const user = auth.currentUser;
+                if (user && user.uid === userId) {
+                    const defaultNickname = (user.email || 'Anon').split('@')[0];
+                    const newProfile = {
+                        email: user.email,
+                        highScore: 0,
+                        nickname: user.displayName || defaultNickname,
+                        avatarUrl: ''
+                    };
+                    await userRef.set(newProfile);
+                    return newProfile;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error("Ошибка при получении профиля:", error);
+                return null;
             }
+        }
 
-            // Если нашли пользователя с таким никнеймом, проверяем, это не текущий ли пользователь
-            const foundUserId = snapshot.docs[0].id;
-            return foundUserId === currentUserId; 
-         }
+        async function showProfileModal(userId) {
+            currentProfileUserId = userId;
+            profileMessage.textContent = 'Загрузка...';
+            profileModal.style.display = 'block';
+            hideEditProfile(); // Скрыть форму редактирования по умолчанию
+            
+            const profileData = await fetchProfile(userId);
+            
+            if (profileData) {
+                profileTitle.textContent = `Профиль: ${profileData.nickname}`;
+                profileNickname.textContent = profileData.nickname;
+                profileEmail.textContent = profileData.email;
+                profileHighScore.textContent = profileData.highScore;
+                profileAvatar.src = profileData.avatarUrl || 'https://via.placeholder.com/80/6c5ce7/ffffff?text=U';
+                
+                // Отобразить кнопку редактирования, только если это профиль текущего пользователя
+                if (currentUser && currentUser.uid === userId) {
+                    editProfileButton.style.display = 'block';
+                    editProfileButton.textContent = 'Редактировать профиль';
+                } else {
+                    editProfileButton.style.display = 'none';
+                }
+                
+                profileMessage.textContent = '';
+            } else {
+                profileTitle.textContent = 'Профиль не найден';
+                profileMessage.textContent = 'Не удалось загрузить данные профиля.';
+            }
+        }
 
+        function showEditProfile() {
+            editProfileButton.style.display = 'none';
+            editProfileForm.style.display = 'block';
+            editNicknameInput.value = profileNickname.textContent;
+            profileMessage.textContent = '';
+        }
+
+        function hideEditProfile() {
+            editProfileForm.style.display = 'none';
+            if (currentUser && currentUser.uid === currentProfileUserId) {
+                 editProfileButton.style.display = 'block';
+            }
+            profileMessage.textContent = '';
+        }
+        
         async function handleProfileEdit(event) {
             event.preventDefault();
             profileMessage.textContent = 'Сохранение...';
             const newNickname = editNicknameInput.value.trim();
-
+            
             if (!currentUser || currentUser.uid !== currentProfileUserId) {
                 profileMessage.textContent = 'Ошибка: Вы не можете редактировать этот профиль.';
                 return;
             }
-
-            if (newNickname.length < 3) {
-                 profileMessage.textContent = 'Никнейм должен быть не менее 3 символов.';
-                 return;
-            }
             
+            if (newNickname.length < 3) {
+                profileMessage.textContent = 'Никнейм должен быть не менее 3 символов.';
+                return;
+            }
+
             // --- ПРОВЕРКА НА УНИКАЛЬНОСТЬ НИКНЕЙМА ---
             const isUnique = await isNicknameUnique(newNickname, currentUser.uid);
             if (!isUnique) {
-                 profileMessage.textContent = 'Ошибка: Никнейм уже занят. Выберите другой.';
-                 return;
+                profileMessage.textContent = 'Ошибка: Никнейм уже занят. Выберите другой.';
+                return;
             }
-            // --- КОНЕЦ ПРОВЕРКИ ---
-            
+
+            // Сохранение изменений
+            const userRef = db.collection("users").doc(currentUser.uid);
             try {
-                // Обновление в Auth
-                await currentUser.updateProfile({ displayName: newNickname });
+                await userRef.update({ nickname: newNickname });
+                await currentUser.updateProfile({ displayName: newNickname }); // Обновляем в Auth
                 
-                // Обновление в Firestore
-                await db.collection("users").doc(currentUser.uid).update({
-                    nickname: newNickname
-                });
+                profileNickname.textContent = newNickname; // Обновляем в модальном окне
+                authButton.textContent = `Профиль (${newNickname})`; // Обновляем кнопку
                 
-                profileMessage.textContent = 'Профиль успешно обновлен!';
-                toggleEditMode(false);
-                showProfileModal(currentUser.uid); 
-                updateAuthUI(currentUser); 
+                profileMessage.textContent = 'Профиль обновлен успешно!';
+                hideEditProfile();
+                
             } catch (error) {
                 profileMessage.textContent = `Ошибка сохранения: ${error.message}`;
-                console.error("Ошибка сохранения профиля:", error);
+                console.error('Ошибка сохранения профиля:', error);
             }
         }
 
-
-        // --- ОБРАБОТЧИКИ КНОПОК И МОДАЛЬНЫХ ОКОН ---
-
-        function showModeModal() {
-            // ... (existing function)
-            modeSelectionButtons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.mode === gameMode) {
-                    btn.classList.add('active');
+        // --- НОВЫЙ КОД: ФУНКЦИИ ТЕМЫ ОФОРМЛЕНИЯ ---
+        
+        // Функция для обновления текста и стиля кнопки темы
+        function updateThemeButton(isDarkMode) {
+            if (themeToggleButton) {
+                themeToggleButton.textContent = isDarkMode ? 'Сменить на Светлую Тему ☀️' : 'Сменить на Темную Тему 🌙';
+                // Обновление градиента кнопки для темного/светлого режима
+                if (isDarkMode) {
+                    // Используем градиент, который лучше смотрится в темном режиме
+                    themeToggleButton.style.backgroundImage = 'linear-gradient(to right, #8e44ad 0%, #a29bfe 100%)'; 
+                } else {
+                    // Используем стандартный синий градиент для светлого режима
+                    themeToggleButton.style.backgroundImage = 'linear-gradient(to right, #3498db 0%, #2980b9 100%)'; 
                 }
-            });
-            modeModal.style.display = 'block';
-        }
-
-        function selectMode(mode) {
-            // ... (existing function)
-            if (mode !== gameMode) {
-                initializeGame(mode);
             }
-            modeModal.style.display = 'none';
         }
 
+        // Функция для переключения темы
         function toggleTheme() {
-            // ... (existing function)
-            if (document.body.classList.contains('dark-mode')) {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
-            }
+            const isDarkMode = !document.body.classList.contains('dark-mode');
+            
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            updateThemeButton(isDarkMode);
         }
         
-        // --- ЗАПУСК ИГРЫ ---
-
+        // --- ЗАПУСК ОСНОВНОЙ ФУНКЦИИ (ОБНОВЛЕНО) ---
         function main() {
-            // Инициализация игры (включает защиту переменных)
-            initializeGame(NORMAL_MODE); 
-
-            // Обработчики кнопок
+            // Обработчики для сброса и смены режима
             resetButton.onclick = () => initializeGame(gameMode);
+            modeButton.onclick = () => modeModal.style.display = 'block';
+            leaderboardButton.onclick = () => { leaderboardModal.style.display = 'block'; loadLeaderboard(); };
             settingsButton.onclick = () => settingsModal.style.display = 'block';
-            modeButton.onclick = () => showModeModal();
-            themeToggleButton.onclick = toggleTheme;
-            leaderboardButton.onclick = fetchLeaderboard;
-            editProfileButton.onclick = () => toggleEditMode(true);
-            cancelEditButton.onclick = () => toggleEditMode(false);
+            
+            // Обработчики для доски
+            gameBoardElement.addEventListener('dragover', handleDragOver);
+            gameBoardElement.addEventListener('dragenter', handleDragEnter);
+            gameBoardElement.addEventListener('dragleave', handleDragLeave);
+            gameBoardElement.addEventListener('drop', handleDrop);
+            
+            // Обработчики для аутентификации
+            authForm.onsubmit = handleAuthSubmit;
+            toggleAuthButton.onclick = () => {
+                isRegistering = !isRegistering;
+                authTitle.textContent = isRegistering ? 'Регистрация' : 'Вход';
+                authSubmitButton.textContent = isRegistering ? 'Зарегистрироваться' : 'Войти';
+                toggleAuthButton.textContent = isRegistering ? 'Уже есть аккаунт?' : 'Нужна регистрация?';
+                authMessage.textContent = '';
+            };
+
+            // Обработчики для профиля
+            editProfileButton.onclick = showEditProfile;
+            cancelEditButton.onclick = hideEditProfile;
             editProfileForm.onsubmit = handleProfileEdit;
 
             // Обработчики для закрытия модальных окон
@@ -1838,9 +1916,19 @@
             });
 
             // Инициализация темной темы
-            if (localStorage.getItem('theme') === 'dark') {
+            const isDarkMode = localStorage.getItem('theme') === 'dark';
+            if (isDarkMode) {
                 document.body.classList.add('dark-mode');
             }
+            updateThemeButton(isDarkMode); // Установка начального текста кнопки
+            
+            // Обработчик кнопки смены темы (НОВОЕ)
+            if (themeToggleButton) {
+                themeToggleButton.onclick = toggleTheme;
+            }
+            
+            // Запуск игры
+            initializeGame(NORMAL_MODE);
         }
         
         main(); // Запуск основной функции
