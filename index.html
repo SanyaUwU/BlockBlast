@@ -551,17 +551,16 @@
     </div>
 
     <script>
-        // Конфигурация Firebase (замените на свои ключи)
+        // Конфигурация Firebase 
         const firebaseConfig = {
-          apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
-          authDomain: "block-blast-leader.firebaseapp.com",
-          projectId: "block-blast-leader",
-          storageBucket: "block-blast-leader.firebasestorage.app",
-          messagingSenderId: "435353232888",
-          appId: "1:435353232888:web:79480b0345c0209e8d220d",
-          measurementId: "G-ZKCKX6NBKZ"
+            apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
+            authDomain: "block-blast-leader.firebaseapp.com",
+            projectId: "block-blast-leader",
+            storageBucket: "block-blast-leader.firebasestorage.app",
+            messagingSenderId: "435353232888",
+            appId: "1:435353232888:web:79480b0345c0209e8d220d",
+            measurementId: "G-ZKCKX6NBKZ"
         };
-
         
         // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
@@ -576,7 +575,7 @@
         
         // --- ИИ КОНСТАНТЫ (Модификация для приоритета комбо) ---
         // Устанавливаем высокий приоритет для очистки линий (комбо)
-        const AI_COMBO_WEIGHT = 5000; // УВЕЛИЧЕННЫЙ ВЕС: 1 линия=5000, 2 линии=20000, 3 линии=45000...
+        const AI_COMBO_WEIGHT = 5000; 
         const AI_COVERAGE_WEIGHT = 0.5;
         const AI_OCCUPIED_PENALTY = 5;
         
@@ -624,6 +623,7 @@
         const cancelEditButton = document.getElementById('cancel-edit-button');
         const newGameButton = document.getElementById('new-game-button');
         const themeToggleButton = document.getElementById('theme-toggle-button');
+        const modeButton = document.getElementById('mode-button'); // Добавлено для FIX 1
         
         // Все кнопки закрытия модальных окон
         const closeButtons = document.querySelectorAll('.close-button');
@@ -741,9 +741,6 @@
                 drawBoard();
                 renderNextBlocks();
                 
-                // Проверка на конец игры после загрузки (на всякий случай)
-                // checkGameOver(); // Лучше не вызывать, чтобы не проиграть сразу после загрузки
-                
                 console.log("Состояние игры загружено.");
                 return true;
             } catch (e) {
@@ -813,24 +810,29 @@
         }
 
         function renderNextBlocks() {
+            // !!! FIX 2: Проверка на необходимость генерации новых фигур
+            const allShapesUsed = currentShapes.every(s => s === null);
+            
+            if (allShapesUsed) {
+                generateNextShapes(); // Генерирует 3 новые фигуры
+            }
+
             nextBlocksElement.innerHTML = '';
-            let blocksRemaining = false;
             
             currentShapes.forEach((shapeData, index) => {
                 const shapeContainer = createShapeElement(shapeData, index);
                 nextBlocksElement.appendChild(shapeContainer);
                 if (shapeData) {
-                    blocksRemaining = true;
-                    // Добавление обработчиков Drag & Drop
                     shapeContainer.addEventListener('dragstart', handleDragStart);
                     shapeContainer.addEventListener('dragend', handleDragEnd);
                 }
             });
             
-            if (!blocksRemaining) {
-                generateNextShapes();
+            // !!! FIX 2: Проверка Game Over сразу после генерации новых блоков
+            if (allShapesUsed) { 
+                 checkGameOver(); 
             }
-            
+
             // Сброс и применение подсказок ИИ после рендера
             clearHighlights();
             if (gameMode === TRAINING_MODE) {
@@ -886,7 +888,7 @@
             
             renderNextBlocks();
             checkClearsAndUpdateScore();
-            checkGameOver();
+            checkGameOver(); // Проверка на проигрыш остается здесь, чтобы проверить все фигуры (старые и новые)
             
             saveGameSession(); // Сохраняем сессию после хода
             
@@ -975,11 +977,9 @@
                     
                     drawBoard();
                     
-                    // Скрываем комбо-сообщение
-                    setTimeout(() => {
-                        comboDisplay.style.opacity = 0;
-                    }, 500);
-
+                    // Скрываем комбо-сообщение (оно пропадет сразу после следующего хода без очистки)
+                    // или через 500мс после анимации, если это последний clear.
+                    
                     // Пересчитываем ИИ-ходы после очистки
                     if (gameMode === TRAINING_MODE) {
                          calculateBestMoves();
@@ -1196,13 +1196,15 @@
             const y = event.clientY - shapeRect.top;
             
             // Ширина/высота блока в пикселях
-            const blockWidth = shapeRect.width / currentShapes[draggedShapeIndex].pattern[0].length;
-            const blockHeight = shapeRect.height / currentShapes[draggedShapeIndex].pattern.length;
+            const shapeData = currentShapes[draggedShapeIndex];
+            if (!shapeData) return;
+            const blockWidth = shapeRect.width / shapeData.pattern[0].length;
+            const blockHeight = shapeRect.height / shapeData.pattern.length;
             
             // Определение, какой блок был нажат (для точного смещения)
             let clickedRow = 0;
             let clickedCol = 0;
-            const pattern = currentShapes[draggedShapeIndex].pattern;
+            const pattern = shapeData.pattern;
             
             for (let r = 0; r < pattern.length; r++) {
                 for (let c = 0; c < pattern[0].length; c++) {
@@ -1242,6 +1244,13 @@
             shapeContainer.classList.remove('is-dragging');
             draggedShapeIndex = -1;
             
+            // !!! FIX 3: Удаление следа (подсветки) на Drag End
+            document.querySelectorAll('.potential-placement').forEach(cell => {
+                cell.classList.remove('potential-placement');
+                cell.style.backgroundColor = ''; 
+            });
+            // !!! END FIX 3
+
             if (gameMode === TRAINING_MODE) {
                 highlightAIBestMoves(); // Восстанавливаем подсказку, если не был сделан ход
             }
@@ -1252,9 +1261,13 @@
             const targetCell = event.target.closest('.cell');
             if (!targetCell || draggedShapeIndex === -1) return;
             
-            // Визуальная подсветка потенциального хода
+            // Визуальная подсветка потенциального хода (Удаляем старую подсветку)
             document.querySelectorAll('.potential-placement').forEach(cell => {
                 cell.classList.remove('potential-placement');
+                // Важно: нужно также сбросить inline style
+                if (!cell.classList.contains('filled')) {
+                     cell.style.backgroundColor = '';
+                }
             });
 
             const cellRow = parseInt(targetCell.dataset.row);
@@ -1285,6 +1298,8 @@
         function handleDrop(event) {
             event.preventDefault();
             const targetCell = event.target.closest('.cell');
+            
+            // Удаление следа (подсветки) после успешного дропа
             document.querySelectorAll('.potential-placement').forEach(cell => {
                 cell.classList.remove('potential-placement');
                 cell.style.backgroundColor = ''; // Очистка фона
@@ -1601,7 +1616,7 @@
         }
         
         function updateThemeButton(isDarkMode) {
-            themeToggleButton.textContent = isDarkMode ? 'Темная тема' : 'Светлая тема';
+            themeToggleButton.textContent = isDarkMode ? 'Светлая тема' : 'Темная тема';
         }
 
         function toggleTheme() {
@@ -1657,6 +1672,18 @@
             document.getElementById('leaderboard-button').onclick = () => {
                 loadLeaderboard();
                 leaderboardModal.style.display = 'block';
+            };
+            
+            // !!! FIX 1: Кнопка "Режим"
+            modeButton.onclick = () => {
+                modeModal.style.display = 'block';
+                // Обновляем состояние кнопок режима 
+                modeSelectionButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.mode === gameMode) {
+                        btn.classList.add('active');
+                    }
+                });
             };
             
             // Обработчики для выбора режима
