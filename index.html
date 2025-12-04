@@ -467,22 +467,6 @@
             border-color: #4a69bd;
             color: #ecf0f1;
         }
-
-        .sanwec-credit {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 1.2em;
-            text-align: center;
-            margin-top: 30px;
-            background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00, #ff0084);
-            background-size: 400% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: text-flow 4s linear infinite;
-        }
-        @keyframes text-flow {
-            to { background-position: 400% center; }
-        }
     </style>
 </head>
 <body>
@@ -576,15 +560,11 @@
             </div>
         </div>
     </div>
-    
-    <div class="sanwec-credit">
-        Code by Sanwec | The Block Blast Game
-    </div>
 
     <script>
         
         const firebaseConfig = {
-            apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwg",
+            apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
             authDomain: "block-blast-leader.firebaseapp.com",
             projectId: "block-blast-leader",
             storageBucket: "block-blast-leader.firebasestorage.app",
@@ -739,6 +719,9 @@
                 }
             }
             renderNextShapes();
+            if (gameMode === AI_MODE) {
+                suggestAIMove();
+            }
         }
 
         function renderNextShapes() {
@@ -1032,17 +1015,21 @@
             const highlightColor = canPlace ? shapeData.color : '#e74c3c'; 
             
             
-            highlightCells(shapeData.pattern, startRow, startCol, highlightColor);
+            highlightCells(shapeData.pattern, startRow, startCol, highlightColor, canPlace);
         }
         
         function clearHighlight() {
-            document.querySelectorAll('.cell.highlight').forEach(cell => {
-                cell.classList.remove('highlight');
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('highlight', 'invalid-placement', 'ai-highlight-0', 'ai-highlight-1', 'ai-highlight-2');
                 cell.style.backgroundColor = EMPTY_COLOR;
+                cell.classList.remove('filled');
+            });
+            document.querySelectorAll('.shape-container').forEach(container => {
+                container.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
             });
         }
         
-        function highlightCells(pattern, startR, startC, color) {
+        function highlightCells(pattern, startR, startC, color, isValid) {
             
             clearHighlight(); 
             
@@ -1098,6 +1085,110 @@
             checkGameOver();
         }
 
+        
+        
+        function suggestAIMove() {
+            let bestMove = null;
+            let maxScore = -1;
+
+            
+            currentShapes.forEach((shapeData, shapeIndex) => {
+                const pattern = shapeData.pattern;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (canPlaceShape(pattern, r, c)) {
+                            
+                            const score = calculateMoveScore(pattern, r, c); 
+                            
+                            if (score > maxScore) {
+                                maxScore = score;
+                                bestMove = { shapeIndex, startRow: r, startCol: c };
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (bestMove) {
+                
+                highlightAIPlacement(bestMove.shapeIndex, bestMove);
+            }
+        }
+
+        
+        function calculateMoveScore(pattern, startR, startC) {
+            let tempBoard = gameBoard.map(row => [...row]);
+            let blocksPlaced = 0;
+
+            
+            for (let r = 0; r < pattern.length; r++) {
+                for (let c = 0; c < pattern[0].length; c++) {
+                    if (pattern[r][c] === 1) {
+                        tempBoard[startR + r][startC + c] = 'TEMP'; 
+                        blocksPlaced++;
+                    }
+                }
+            }
+
+            let linesCleared = 0;
+            
+            
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                if (tempBoard[r].every(color => color !== EMPTY_COLOR)) {
+                    linesCleared++;
+                }
+            }
+
+            
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                let isFull = true;
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    if (tempBoard[r][c] === EMPTY_COLOR) {
+                        isFull = false;
+                        break;
+                    }
+                }
+                if (isFull) {
+                    linesCleared++;
+                }
+            }
+
+            
+            return blocksPlaced * 1 + linesCleared * 100;
+        }
+
+        function highlightAIPlacement(shapeIndex, placement) {
+            clearHighlight(); 
+            const shapeData = currentShapes[shapeIndex]; 
+            const pattern = shapeData.pattern;
+            const color = shapeData.color;
+
+            
+            const container = document.querySelector(`.shape-container[data-shape-index="${shapeIndex}"]`);
+            if (container) {
+                container.classList.add(`ai-target-${shapeIndex % 3}`); 
+            }
+
+            if (!placement) return; 
+
+            
+            for (let r = 0; r < pattern.length; r++) {
+                for (let c = 0; c < pattern[0].length; c++) {
+                    if (pattern[r][c] === 1) {
+                        const boardR = placement.startRow + r;
+                        const boardC = placement.startCol + c;
+                        
+                        const cell = document.getElementById(`cell-${boardR}-${boardC}`);
+                        if (cell) {
+                            cell.classList.add(`ai-highlight-${shapeIndex % 3}`); 
+                            
+                            cell.style.backgroundColor = color; 
+                            cell.classList.add('filled'); 
+                        }
+                    }
+                }
+            }
+        }
         
         function updateAuthUI(user) {
             currentUser = user;
