@@ -588,9 +588,6 @@
         let gameStartTime = 0;
         let totalBlocksPlaced = 0;
         let totalLinesCleared = 0; 
-        // Порог для обнаружения изменения размеров окна (обычно при открытии консоли)
-        const consoleDetectionThreshold = 160; 
-
         // Переменные, которые вы хотите защитить от прямого изменения в консоли
         const protectedVariables = ['score', 'gameBoard', 'gameMode', 'currentUser'];
         // -----------------------------------------------------------------
@@ -764,9 +761,9 @@
             if (window.devtoolsInterval) clearInterval(window.devtoolsInterval);
         }
         
-        // НОВАЯ ФУНКЦИЯ: Защита основных переменных
+        // Защита основных переменных
         function protectGameVariables() {
-            // 1. Защита от прямого изменения основных переменных через консоль
+            // Защита от прямого изменения основных переменных через консоль
             protectedVariables.forEach(varName => {
                 try {
                     if (window[varName] !== undefined) {
@@ -799,29 +796,8 @@
             });
         }
 
-
-        function checkClientTampering() {
-            // 2. Детектор открытия DevTools (по изменению размеров окна)
-            let devtoolsOpen = false;
-            window.devtoolsInterval = setInterval(() => {
-                // Использование window.outerHeight/Width менее надежно, но предотвращает моментальную блокировку
-                if (window.outerWidth - window.innerWidth > consoleDetectionThreshold || 
-                    window.outerHeight - window.innerHeight > consoleDetectionThreshold) {
-                    
-                    if (!devtoolsOpen) {
-                        devtoolsOpen = true;
-                        // Дополнительная задержка для подтверждения (уменьшение ложных срабатываний)
-                        setTimeout(() => {
-                            if (devtoolsOpen) { // Проверяем, что консоль все еще открыта
-                                blockUser('Обнаружено открытие консоли разработчика.');
-                            }
-                        }, 100); 
-                    }
-                } else {
-                    devtoolsOpen = false;
-                }
-            }, 1000); // Проверка каждые 1 секунду
-        }
+        // УДАЛЕНА ФУНКЦИЯ checkClientTampering:
+        // Агрессивная проверка размеров окна удалена, так как вызывала ложные срабатывания.
 
         // --- КОНЕЦ ФУНКЦИЙ АНТИ-ЧИТА ---
 
@@ -1824,9 +1800,6 @@
         function main() {
             // Инициализация игры (включает защиту переменных)
             initializeGame(NORMAL_MODE); 
-
-            // Запуск АНТИ-ЧИТА с небольшой задержкой (1 секунда) после полной загрузки
-            setTimeout(checkClientTampering, 1000); 
 
             // Обработчики кнопок
             resetButton.onclick = () => initializeGame(gameMode);
