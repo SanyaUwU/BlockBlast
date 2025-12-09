@@ -7,8 +7,8 @@ const NORMAL_MODE = 'normal';
 const TRAINING_MODE = 'training';
 
 // --- ИИ КОНСТАНТЫ ---
-const AI_COMBO_WEIGHT = 5000; 
-const AI_OCCUPIED_PENALTY = 5;
+const AI_COMBO_WEIGHT = 10000; // Увеличен для приоритета очистки
+const AI_OCCUPIED_PENALTY = 10; // Увеличен для предотвращения бессмысленного заполнения
 
 // --- СОХРАНЕНИЕ СЕССИИ ---
 const SESSION_KEY = 'blockBlastSession';
@@ -21,8 +21,8 @@ let currentShapes = [];
 let draggedShapeIndex = -1;
 let dragOffset = { row: 0, col: 0 };
 let gameMode = NORMAL_MODE;
-let comboCount = 0; // Накапливается за последовательные успешные наборы из 3 фигур
-let hasClearedInCurrentSet = false; // Флаг для отслеживания очистки в текущем наборе из 3 фигур
+let comboCount = 0; 
+let hasClearedInCurrentSet = false; 
 let currentBestPlacements = []; 
 let isClearing = false; 
 
@@ -42,6 +42,8 @@ const modeButton = document.getElementById('mode-button');
 const modeModal = document.getElementById('mode-modal');
 const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
 const themeToggleButton = document.getElementById('theme-toggle-button');
+// Элемент для сообщения ИИ (используется для скрытия текста)
+const aiHintMessageElement = document.getElementById('ai-hint-message');
 
 // --- ФИГУРЫ ---
 const SHAPES = [
@@ -67,19 +69,18 @@ const SHAPES = [
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ИГРОЙ И СЕССИЕЙ ---
 
 function updateModeInfo(mode) {
-    const hintMessageElement = document.getElementById('ai-hint-message');
     if (mode === TRAINING_MODE) {
-        modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; // Убрал длинный текст
-        hintMessageElement.style.opacity = 1;
-        hintMessageElement.textContent = ''; 
+        modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; // Короткий текст
+        aiHintMessageElement.style.opacity = 1;
+        aiHintMessageElement.textContent = ''; // Убран весь текст
         if (currentShapes.some(s => s !== null)) {
             calculateBestMoves(); 
             highlightAIBestMoves();
         }
     } else {
         modeInfoElement.textContent = "Режим: Обычный";
-        hintMessageElement.style.opacity = 0;
-        hintMessageElement.textContent = '';
+        aiHintMessageElement.style.opacity = 0;
+        aiHintMessageElement.textContent = '';
         clearHighlights();
     }
 }
@@ -89,7 +90,7 @@ function initializeGame(mode) {
     board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
     score = 0;
     comboCount = 0;
-    hasClearedInCurrentSet = false; // Сброс флага
+    hasClearedInCurrentSet = false; 
     gameMode = mode;
     currentBestPlacements = [];
     isClearing = false;
@@ -110,7 +111,7 @@ function saveGameSession() {
         board: board.map(row => [...row]), 
         score: score,
         comboCount: comboCount,
-        hasClearedInCurrentSet: hasClearedInCurrentSet, // Сохранение флага
+        hasClearedInCurrentSet: hasClearedInCurrentSet, 
         gameMode: gameMode,
         currentShapes: currentShapes.map(s => s ? { ...s, pattern: s.pattern.map(row => [...row]) } : null) 
     };
@@ -134,7 +135,7 @@ function loadGameSession() {
         board = sessionData.board;
         score = sessionData.score;
         comboCount = sessionData.comboCount;
-        hasClearedInCurrentSet = sessionData.hasClearedInCurrentSet || false; // Загрузка флага
+        hasClearedInCurrentSet = sessionData.hasClearedInCurrentSet || false; 
         gameMode = sessionData.gameMode;
         
         currentShapes = sessionData.currentShapes.map(savedShape => {
@@ -251,6 +252,7 @@ function canPlaceShape(pattern, startRow, startCol, currentBoard = board) {
                 if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) {
                     return false;
                 }
+                // *** Ключевая проверка на занятость ***
                 if (currentBoard[boardR][boardC] !== EMPTY_COLOR) {
                     return false; 
                 }
@@ -365,7 +367,7 @@ function executeClearsAndScoring() {
     if (clearedLines > 0) {
         isClearing = true;
         
-        hasClearedInCurrentSet = true; // Отмечаем, что в этом наборе была очистка
+        hasClearedInCurrentSet = true; 
         
         // ЛОГИКА КОМБО: Успешная очистка увеличивает комбо
         comboCount++; 
@@ -466,7 +468,7 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     
     // Убеждаемся, что ход вообще возможен
     if (!canPlaceShape(pattern, startRow, startCol, boardState)) { 
-         return -Infinity; 
+         return -Infinity; // Нелегальный ход
     }
     
     let tempCells = boardState.map(row => [...row]); 
@@ -475,7 +477,8 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     for (let r = 0; r < pattern.length; r++) {
         for (let c = 0; c < pattern[0].length; c++) {
             if (pattern[r][c] === 1) {
-                tempCells[startRow + r][startCol + c] = shapeData.color;
+                // Используем 'temp' для ячеек, чтобы отличить их от 'EMPTY_COLOR'
+                tempCells[startRow + r][startCol + c] = 'temp'; 
             }
         }
     }
@@ -485,15 +488,20 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
 
     let score = 0;
     
-    // Увеличиваем очки за потенциальные линии
+    // 1. Очки за потенциальные линии (очень высокий приоритет)
     if (clearedLines > 0) {
+        // Применяем квадрат очищенных линий для предпочтения мульти-очисток
         score += clearedLines * clearedLines * AI_COMBO_WEIGHT; 
     }
     
-    // Штраф за заполненность доски
+    // 2. Очки за размер фигуры (базовый скоринг)
+    score += shapeData.size;
+    
+    // 3. Штраф за заполненность доски (по-прежнему важен, чтобы не блокировать)
     let occupiedCells = 0;
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
+            // Считаем все заполненные ячейки, кроме тех, что должны быть очищены
             if (tempCells[r][c] !== EMPTY_COLOR) {
                 occupiedCells++;
             }
@@ -543,8 +551,7 @@ function clearHighlights() {
     document.querySelectorAll('.shape-container').forEach(container => {
         container.classList.remove('ai-target-0', 'ai-target-1', 'ai-target-2');
     });
-    const hintMessage = document.getElementById('ai-hint-message');
-    if (hintMessage) hintMessage.textContent = '';
+    if (aiHintMessageElement) aiHintMessageElement.textContent = '';
 }
 
 function highlightAI(placement, shapeData, index) {
@@ -577,10 +584,9 @@ function highlightAIBestMoves() {
     
     clearHighlights();
     let validPlacements = currentBestPlacements.filter(p => p !== null);
-    const hintMessage = document.getElementById('ai-hint-message');
     
     if (validPlacements.length === 0) {
-        if (hintMessage) hintMessage.textContent = '⛔'; // Минимальная индикация
+        if (aiHintMessageElement) aiHintMessageElement.textContent = '⛔'; 
         return;
     }
     
@@ -592,14 +598,16 @@ function highlightAIBestMoves() {
         }
     });
     
-    // Highlight the moves
+    // Подсвечиваем только те ходы, чей счет близок к абсолютному лучшему (порог 95%)
     validPlacements.forEach(p => {
-        highlightAI(p, currentShapes[p.shapeIndex], p.shapeIndex); 
+        if (p.score >= bestOverallScore * 0.95) { 
+             highlightAI(p, currentShapes[p.shapeIndex], p.shapeIndex); 
+        }
     });
     
     // Убираем весь текст
-    if (hintMessage) {
-        hintMessage.textContent = ''; 
+    if (aiHintMessageElement) {
+        aiHintMessageElement.textContent = ''; 
     }
 }
 
