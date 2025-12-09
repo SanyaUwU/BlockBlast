@@ -21,7 +21,8 @@ let currentShapes = [];
 let draggedShapeIndex = -1;
 let dragOffset = { row: 0, col: 0 };
 let gameMode = NORMAL_MODE;
-let comboCount = 0; // Теперь накапливается за последовательные успешные наборы из 3 фигур
+let comboCount = 0; // Накапливается за последовательные успешные наборы из 3 фигур
+let hasClearedInCurrentSet = false; // Флаг для отслеживания очистки в текущем наборе из 3 фигур
 let currentBestPlacements = []; 
 let isClearing = false; 
 
@@ -66,16 +67,19 @@ const SHAPES = [
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ИГРОЙ И СЕССИЕЙ ---
 
 function updateModeInfo(mode) {
+    const hintMessageElement = document.getElementById('ai-hint-message');
     if (mode === TRAINING_MODE) {
-        modeInfoElement.textContent = "Режим: Тренировка (ИИ подсказывает лучший ход). Очистка линий происходит СРАЗУ. Комбо накапливается за каждый успешный набор из 3 фигур.";
-        document.getElementById('ai-hint-message').style.opacity = 1;
+        modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; // Убрал длинный текст
+        hintMessageElement.style.opacity = 1;
+        hintMessageElement.textContent = ''; 
         if (currentShapes.some(s => s !== null)) {
             calculateBestMoves(); 
             highlightAIBestMoves();
         }
     } else {
         modeInfoElement.textContent = "Режим: Обычный";
-        document.getElementById('ai-hint-message').style.opacity = 0;
+        hintMessageElement.style.opacity = 0;
+        hintMessageElement.textContent = '';
         clearHighlights();
     }
 }
@@ -85,6 +89,7 @@ function initializeGame(mode) {
     board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(EMPTY_COLOR));
     score = 0;
     comboCount = 0;
+    hasClearedInCurrentSet = false; // Сброс флага
     gameMode = mode;
     currentBestPlacements = [];
     isClearing = false;
@@ -105,6 +110,7 @@ function saveGameSession() {
         board: board.map(row => [...row]), 
         score: score,
         comboCount: comboCount,
+        hasClearedInCurrentSet: hasClearedInCurrentSet, // Сохранение флага
         gameMode: gameMode,
         currentShapes: currentShapes.map(s => s ? { ...s, pattern: s.pattern.map(row => [...row]) } : null) 
     };
@@ -128,6 +134,7 @@ function loadGameSession() {
         board = sessionData.board;
         score = sessionData.score;
         comboCount = sessionData.comboCount;
+        hasClearedInCurrentSet = sessionData.hasClearedInCurrentSet || false; // Загрузка флага
         gameMode = sessionData.gameMode;
         
         currentShapes = sessionData.currentShapes.map(savedShape => {
@@ -281,9 +288,8 @@ function placeShape(shapeData, startRow, startCol) {
     // 4. Обновляем отображение доски (для отображения поставленной фигуры)
     drawBoard();
     
-    // 5. Немедленное выполнение очистки (если есть)
-    // Эта функция вернет true, если очистка началась, и false, если нет.
-    const clearAnimationStarted = executeClearsAndScoring();
+    // 5. НЕМЕДЛЕННАЯ ОЧИСТКА
+    const clearAnimationStarted = executeClearsAndScoring(); 
     
     const remainingShapesCount = currentShapes.filter(s => s !== null).length;
     const isSetComplete = (remainingShapesCount === 0);
@@ -291,13 +297,13 @@ function placeShape(shapeData, startRow, startCol) {
     if (isSetComplete) {
         // Конец набора из 3-х фигур
         
-        if (!clearAnimationStarted) {
-             // Если очистки НЕ БЫЛО в этом наборе (за все 3 фигуры), сбрасываем комбо.
+        if (!hasClearedInCurrentSet) {
+             // Если очистки не было за весь набор, сбрасываем комбо
              comboCount = 0;
              comboDisplay.style.opacity = 0;
         }
         
-        // Генерируем новый набор фигур.
+        hasClearedInCurrentSet = false; // Сбрасываем флаг для нового набора
         generateNextShapes(); 
     } 
     
@@ -358,6 +364,8 @@ function executeClearsAndScoring() {
     
     if (clearedLines > 0) {
         isClearing = true;
+        
+        hasClearedInCurrentSet = true; // Отмечаем, что в этом наборе была очистка
         
         // ЛОГИКА КОМБО: Успешная очистка увеличивает комбо
         comboCount++; 
@@ -572,29 +580,26 @@ function highlightAIBestMoves() {
     const hintMessage = document.getElementById('ai-hint-message');
     
     if (validPlacements.length === 0) {
-        if (hintMessage) hintMessage.textContent = "ИИ не нашел подходящего хода. Скоро конец игры.";
+        if (hintMessage) hintMessage.textContent = '⛔'; // Минимальная индикация
         return;
     }
     
     let bestOverallScore = -Infinity;
-    let bestOverallIndex = -1;
     
     validPlacements.forEach(p => {
         if (p.score > bestOverallScore) {
             bestOverallScore = p.score;
-            bestOverallIndex = p.shapeIndex;
         }
     });
     
+    // Highlight the moves
     validPlacements.forEach(p => {
         highlightAI(p, currentShapes[p.shapeIndex], p.shapeIndex); 
     });
     
-    const remainingCount = currentShapes.filter(s => s !== null).length;
-    const bestShapeText = bestOverallIndex !== -1 ? `(Лучший ход: Фигура ${bestOverallIndex + 1})` : '';
-    
+    // Убираем весь текст
     if (hintMessage) {
-        hintMessage.textContent = `Подсказка ИИ: Осталось ${remainingCount} фигур. Подсвечено ${validPlacements.length} ходов. ${bestShapeText}`;
+        hintMessage.textContent = ''; 
     }
 }
 
