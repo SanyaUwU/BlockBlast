@@ -70,7 +70,7 @@ const SHAPES = [
 
 function updateModeInfo(mode) {
     if (mode === TRAINING_MODE) {
-        modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; // Короткий текст
+        modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; 
         aiHintMessageElement.style.opacity = 1;
         aiHintMessageElement.textContent = ''; // Убран весь текст
         if (currentShapes.some(s => s !== null)) {
@@ -446,17 +446,27 @@ function checkGameOver() {
 }
 
 function endGame() {
-    if (score > window.highScore) {
-        window.highScore = score;
-        highScoreValueElement.textContent = window.highScore;
-        
-        if (typeof window.updateHighScore === 'function' && window.currentUser) {
-            window.updateHighScore(window.highScore);
+    // === ИСПРАВЛЕНИЕ: Обновляем рекорд ТОЛЬКО в Обычном режиме ===
+    if (gameMode === NORMAL_MODE) {
+        if (score > window.highScore) {
+            window.highScore = score;
+            highScoreValueElement.textContent = window.highScore;
+            
+            // Сохранение рекорда (если функция доступна и пользователь залогинен)
+            if (typeof window.updateHighScore === 'function' && window.currentUser) {
+                window.updateHighScore(window.highScore);
+            }
         }
     }
+    // ==========================================================
     
     setTimeout(() => {
-        alert(`Игра окончена! Ваш финальный счет: ${score}`);
+        let message = `Игра окончена! Ваш финальный счет: ${score}`;
+        if (gameMode === TRAINING_MODE) {
+            message += ' (Рекорд не засчитан в режиме Тренировки)';
+        }
+        
+        alert(message);
         initializeGame(gameMode); 
     }, 500);
 }
