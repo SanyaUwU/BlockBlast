@@ -22,8 +22,8 @@ let draggedShapeIndex = -1;
 let dragOffset = { row: 0, col: 0 };
 let gameMode = NORMAL_MODE;
 let comboCount = 0;
-let currentBestPlacements = []; // Хранит лучший ход для каждой из 3 фигур
-let isClearing = false; // Для предотвращения повторного рендера во время анимации
+let currentBestPlacements = []; 
+let isClearing = false; 
 
 // Делаем переменные глобально доступными для auth.js
 window.highScore = highScore;
@@ -95,12 +95,12 @@ function initializeGame(mode) {
     
     updateModeInfo(mode);
     drawBoard();
-    generateNextShapes(); // Вызовет calculateBestMoves если mode=TRAINING
+    generateNextShapes(); 
     renderNextBlocks();
 }
 
 // --- ФУНКЦИИ СОХРАНЕНИЯ/ЗАГРУЗКИ СЕССИИ (LocalStorage) ---
-
+// (Логика сохранения/загрузки остается без изменений)
 function saveGameSession() {
     if (gameMode !== NORMAL_MODE && gameMode !== TRAINING_MODE) return; 
     
@@ -146,7 +146,7 @@ function loadGameSession() {
         scoreValueElement.textContent = score;
         updateModeInfo(gameMode);
         drawBoard();
-        renderNextBlocks(); // Это вызовет пересчет AI, если нужно
+        renderNextBlocks(); 
         
         console.log("Состояние игры загружено.");
         return true;
@@ -157,7 +157,9 @@ function loadGameSession() {
     }
 }
 
+
 // --- ФУНКЦИИ СЕТКИ И РИСОВАНИЯ ---
+// (drawBoard, createShapeElement - без изменений)
 
 function drawBoard() {
     gameBoardElement.innerHTML = '';
@@ -220,13 +222,6 @@ function renderNextBlocks() {
     // Не рендерим, если идет анимация очистки
     if (isClearing) return; 
 
-    const allShapesUsed = currentShapes.every(s => s === null);
-    
-    // В обычном режиме, если все фигуры использованы, генерируем новые сразу
-    if (gameMode === NORMAL_MODE && allShapesUsed) {
-        generateNextShapes(); 
-    }
-
     nextBlocksElement.innerHTML = '';
     
     currentShapes.forEach((shapeData, index) => {
@@ -238,11 +233,6 @@ function renderNextBlocks() {
         }
     });
     
-    // В обычном режиме проверяем Game Over сразу, если нет фигур
-    if (gameMode === NORMAL_MODE && allShapesUsed) { 
-         checkGameOver(); 
-    }
-
     clearHighlights();
     if (gameMode === TRAINING_MODE) {
         highlightAIBestMoves();
@@ -302,27 +292,26 @@ function placeShape(shapeData, startRow, startCol) {
 
     if (remainingShapesCount === 0) {
         // Все 3 фигуры поставлены: Выполняем отложенную очистку
-        executeClearsAndScoring(); 
+        // FIX 1: Получаем флаг, была ли запущена анимация очистки
+        const clearAnimationStarted = executeClearsAndScoring(); 
         
-        if (gameMode === TRAINING_MODE) {
-            // В режиме тренировки, новый набор генерируем только после очистки
-            // чтобы AI считал ходы для чистого поля
-        } else {
-             // В обычном режиме - генерируем сразу
+        if (!clearAnimationStarted) {
+             // FIX 1: Если очистка не началась (нет линий), немедленно генерируем новые фигуры.
              generateNextShapes();
+             renderNextBlocks(); 
+             checkGameOver(); // Проверяем Game Over после генерации нового набора
         }
-
     } else {
         // Фигуры еще есть: очистка не происходит
         if (gameMode === TRAINING_MODE) {
             // Пересчитываем AI, чтобы показать лучший ход для оставшихся
             calculateBestMoves();
         }
+        // Обновляем отображение фигур (убираем использованную, показываем оставшиеся)
+        renderNextBlocks(); 
+        checkGameOver(); // Проверяем Game Over с оставшимися фигурами
     }
     
-    // Обновляем отображение фигур (либо оставшихся, либо нового набора)
-    renderNextBlocks(); 
-    checkGameOver();
     saveGameSession(); 
     
     return true;
@@ -410,16 +399,22 @@ function executeClearsAndScoring() {
             drawBoard(); // Перерисовываем очищенную доску
             isClearing = false;
             
-            // Генерируем новый набор фигур после очистки, если игра продолжается
+            // Генерируем новый набор фигур после очистки
             generateNextShapes(); 
             renderNextBlocks(); 
             checkGameOver();
             
         }, 400); 
+        
+        // FIX 1: Возвращаем true, если анимация очистки запущена
+        return true; 
     } else {
         // Сбрасываем комбо, только если не было очисток
         comboCount = 0;
         comboDisplay.style.opacity = 0;
+        
+        // FIX 1: Возвращаем false, если очистки не было
+        return false; 
     }
 }
 
@@ -450,7 +445,6 @@ function checkGameOver() {
 }
 
 function endGame() {
-    // ... (End Game logic remains the same)
     if (score > window.highScore) {
         window.highScore = score;
         highScoreValueElement.textContent = window.highScore;
@@ -470,13 +464,15 @@ function endGame() {
 
 function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     const pattern = shapeData.pattern;
-    let tempCells = boardState.map(row => [...row]); 
-
-    if (!canPlaceShape(pattern, startRow, startCol, tempCells)) {
+    
+    // FIX 2: Убедимся, что проверяем возможность размещения на текущем состоянии доски
+    if (!canPlaceShape(pattern, startRow, startCol, boardState)) { 
          return -Infinity; 
     }
+    
+    let tempCells = boardState.map(row => [...row]); 
 
-    // Временное размещение фигуры
+    // Временное размещение фигуры (гарантированно проходит проверку canPlaceShape)
     for (let r = 0; r < pattern.length; r++) {
         for (let c = 0; c < pattern[0].length; c++) {
             if (pattern[r][c] === 1) {
@@ -521,14 +517,15 @@ function calculateBestMoves() {
         let bestScore = -Infinity;
         let bestPlacement = null;
         
+        // Перебираем все возможные стартовые позиции
         for (let r = 0; r <= BOARD_SIZE - shapeData.pattern.length; r++) {
             for (let c = 0; c <= BOARD_SIZE - shapeData.pattern[0].length; c++) {
                 
+                // Используем текущее состояние board для оценки
                 const currentScore = calculateHeuristicScore(board, shapeData, r, c);
                 
                 if (currentScore > bestScore) {
                     bestScore = currentScore;
-                    // Сохраняем индекс фигуры для удобства подсветки
                     bestPlacement = { startR: r, startC: c, score: bestScore, shapeIndex: shapeIndex };
                 }
             }
@@ -537,7 +534,7 @@ function calculateBestMoves() {
         if (bestPlacement && bestPlacement.score > -Infinity) {
             currentBestPlacements[shapeIndex] = bestPlacement;
         } else {
-            // Если ход невозможен, сохраняем null
+            // Если ход невозможен (bestScore остался -Infinity), сохраняем null
             currentBestPlacements[shapeIndex] = null; 
         }
     });
@@ -557,7 +554,6 @@ function clearHighlights() {
 function highlightAI(placement, shapeData, index) {
     const { startR, startC } = placement;
     const pattern = shapeData.pattern;
-    // Используем индекс 0, 1, 2 для выбора класса подсветки (цвета)
     const colorClass = `ai-highlight-${index}`; 
     const targetClass = `ai-target-${index}`;
     
@@ -575,8 +571,6 @@ function highlightAI(placement, shapeData, index) {
                 const boardC = startC + c;
                 const cell = gameBoardElement.querySelector(`[data-row="${boardR}"][data-col="${boardC}"]`);
                 if (cell) {
-                    // Добавляем класс подсветки. Если ячейка уже подсвечена другим ходом, 
-                    // будут применены все классы.
                     cell.classList.add(colorClass); 
                 }
             }
@@ -610,8 +604,6 @@ function highlightAIBestMoves() {
     
     // 2. Подсвечиваем все найденные ходы
     validPlacements.forEach(p => {
-        // p.shapeIndex - это индекс фигуры (0, 1, или 2), который соответствует 
-        // классу подсветки 'ai-highlight-N' и 'ai-target-N'.
         highlightAI(p, currentShapes[p.shapeIndex], p.shapeIndex); 
     });
     
@@ -625,13 +617,13 @@ function highlightAIBestMoves() {
 }
 
 // --- DRAG & DROP ФУНКЦИИ ---
+// (handleDragStart, handleDragEnd, handleDragOver, handleDrop - без изменений)
 
 function handleDragStart(event) {
     if (isClearing) {
         event.preventDefault();
         return;
     }
-    // ... (остальная логика dragStart остается прежней)
     const shapeContainer = event.currentTarget;
     draggedShapeIndex = parseInt(shapeContainer.dataset.shapeIndex);
     
@@ -682,7 +674,6 @@ function handleDragStart(event) {
 }
 
 function handleDragEnd(event) {
-    // ... (логика dragEnd остается прежней)
     const shapeContainer = event.currentTarget;
     shapeContainer.classList.remove('is-dragging');
     draggedShapeIndex = -1;
@@ -698,7 +689,6 @@ function handleDragEnd(event) {
 }
 
 function handleDragOver(event) {
-    // ... (логика dragOver остается прежней)
     event.preventDefault(); 
     const targetCell = event.target.closest('.cell');
     if (!targetCell || draggedShapeIndex === -1 || isClearing) return;
@@ -736,7 +726,6 @@ function handleDragOver(event) {
 }
 
 function handleDrop(event) {
-    // ... (логика drop остается прежней)
     event.preventDefault();
     const targetCell = event.target.closest('.cell');
     
@@ -758,8 +747,9 @@ function handleDrop(event) {
     placeShape(shapeData, startRow, startCol);
 }
 
+
 // --- ФУНКЦИИ UI/НАСТРОЕК ---
-// ... (Остальные функции UI остаются прежними)
+// (toggleTheme, selectMode, updateThemeButton - без изменений)
 
 function selectMode(mode) {
     modeModal.style.display = 'none';
@@ -787,6 +777,7 @@ function toggleTheme() {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     updateThemeButton(isDarkMode);
 }
+
 
 // --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
 document.addEventListener('DOMContentLoaded', () => {
