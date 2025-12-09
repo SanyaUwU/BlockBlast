@@ -67,7 +67,7 @@ const SHAPES = [
 
 function updateModeInfo(mode) {
     if (mode === TRAINING_MODE) {
-        modeInfoElement.textContent = "Режим: Тренировка (ИИ подсказывает лучший ход). Очистка линий происходит после использования всех 3 фигур. Комбо накапливается за каждый успешный набор.";
+        modeInfoElement.textContent = "Режим: Тренировка (ИИ подсказывает лучший ход). Очистка линий происходит СРАЗУ. Комбо накапливается за каждый успешный набор из 3 фигур.";
         document.getElementById('ai-hint-message').style.opacity = 1;
         if (currentShapes.some(s => s !== null)) {
             calculateBestMoves(); 
@@ -281,22 +281,29 @@ function placeShape(shapeData, startRow, startCol) {
     // 4. Обновляем отображение доски (для отображения поставленной фигуры)
     drawBoard();
     
+    // 5. Немедленное выполнение очистки (если есть)
+    // Эта функция вернет true, если очистка началась, и false, если нет.
+    const clearAnimationStarted = executeClearsAndScoring();
+    
     const remainingShapesCount = currentShapes.filter(s => s !== null).length;
+    const isSetComplete = (remainingShapesCount === 0);
 
-    if (remainingShapesCount === 0) {
-        // Все 3 фигуры поставлены: Выполняем отложенную очистку
-        const clearAnimationStarted = executeClearsAndScoring(); 
+    if (isSetComplete) {
+        // Конец набора из 3-х фигур
         
         if (!clearAnimationStarted) {
-             // Если очистки не было, сбрасываем комбо, генерируем новый набор и проверяем Game Over
+             // Если очистки НЕ БЫЛО в этом наборе (за все 3 фигуры), сбрасываем комбо.
              comboCount = 0;
              comboDisplay.style.opacity = 0;
-             generateNextShapes();
-             renderNextBlocks(); 
-             checkGameOver(); 
         }
-    } else {
-        // Фигуры еще есть: очистка не происходит
+        
+        // Генерируем новый набор фигур.
+        generateNextShapes(); 
+    } 
+    
+    // Если очистка началась, renderNextBlocks и checkGameOver будут вызваны после анимации.
+    // Иначе - вызываем сейчас для обновления подсказки ИИ и проверки Game Over.
+    if (!clearAnimationStarted) {
         if (gameMode === TRAINING_MODE) {
             calculateBestMoves();
         }
@@ -352,11 +359,11 @@ function executeClearsAndScoring() {
     if (clearedLines > 0) {
         isClearing = true;
         
-        // НОВАЯ ЛОГИКА КОМБО: Успешный раунд увеличивает комбо
+        // ЛОГИКА КОМБО: Успешная очистка увеличивает комбо
         comboCount++; 
         
         let baseScore = cellsToClear.size * 10; 
-        // Бонус теперь зависит от накопительного comboCount
+        // Бонус зависит от накопительного comboCount
         let bonusScore = baseScore + (clearedLines * comboCount * 100); 
         
         comboDisplay.textContent = comboCount > 1 
@@ -377,7 +384,7 @@ function executeClearsAndScoring() {
             }
         });
 
-        // Отложенное фактическое удаление и генерация нового набора
+        // Отложенное фактическое удаление и обновление состояния
         setTimeout(() => {
             cellsToClear.forEach(key => {
                 const [r, c] = key.split('-').map(Number);
@@ -387,8 +394,10 @@ function executeClearsAndScoring() {
             drawBoard(); 
             isClearing = false;
             
-            // Генерация нового набора и проверка Game Over
-            generateNextShapes(); 
+            // После очистки обновляем подсказку ИИ/блоки и проверяем Game Over
+            if (gameMode === TRAINING_MODE) {
+                calculateBestMoves();
+            }
             renderNextBlocks(); 
             checkGameOver();
             
@@ -396,7 +405,6 @@ function executeClearsAndScoring() {
         
         return true; 
     } else {
-        // Если очистки не было, placeShape сбросит comboCount
         return false; 
     }
 }
