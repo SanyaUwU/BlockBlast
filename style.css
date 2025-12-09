@@ -1,0 +1,441 @@
+/* Анимация градиента */
+@keyframes background-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Общие стили */
+body {
+    font-family: 'Poppins', sans-serif; 
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 30px;
+    transition: background-color 0.3s, color 0.3s;
+    /* Яркий анимированный градиент */
+    background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
+    background-size: 400% 400%;
+    animation: background-animation 20s ease infinite;
+    color: #ecf0f1;
+}
+
+.game-container {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 15px; 
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); 
+    text-align: center;
+    max-width: 380px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    width: 100%;
+}
+
+/* Темная тема */
+body.dark-mode {
+    color: #ecf0f1;
+    background: linear-gradient(-45deg, #1e1e2f, #3a3a5a, #1e1e2f, #3a3a5a);
+    background-size: 400% 400%;
+    animation: background-animation 20s ease infinite;
+}
+
+body.dark-mode .game-container {
+    background-color: #2c3e50;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+}
+
+body.dark-mode h1 {
+    color: #ffeaa7;
+}
+
+body.dark-mode .score-panel, body.dark-mode #mode-info {
+    color: #ecf0f1;
+}
+
+h1 {
+    font-weight: 700;
+    color: #ff6b6b; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    transition: color 0.3s;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Комбо дисплей */
+#combo-display {
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
+    letter-spacing: 1px;
+    transition: opacity 0.5s;
+    color: #e67e22;
+    font-size: 1.1em;
+    opacity: 0;
+    min-height: 1.2em;
+}
+
+/* Стили для панели счета */
+.score-panel {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#mode-info {
+    font-size: 0.9em;
+    font-weight: 400;
+    margin-top: 5px;
+    min-height: 1.1em;
+    color: #7f8c8d;
+}
+
+/* Кнопки в шапке */
+.header-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px; 
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+/* Сетка */
+#game-board {
+    width: 320px; /* 8 * 40px */
+    height: 320px; /* 8 * 40px */
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); 
+    grid-template-rows: repeat(8, 1fr);   
+    border: 6px solid #ff9f43; 
+    border-radius: 8px; 
+    background-color: #dfe6e9;
+    margin: 0 auto 25px auto;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+body.dark-mode #game-board {
+    background-color: #34495e;
+    border-color: #2ecc71;
+}
+
+.cell {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid #b2bec3; 
+    transition: background-color 0.1s, opacity 0.1s, transform 0.1s;
+}
+
+body.dark-mode .cell {
+    border: 1px solid #7f8c8d;
+}
+
+.filled {
+    border: none;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); 
+    opacity: 1 !important;
+}
+
+/* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
+.ai-highlight-0 { 
+    box-shadow: 0 0 8px 3px #1dd1a1 !important;
+    border: 2px solid #1dd1a1 !important;
+}
+.ai-highlight-1 { 
+    box-shadow: 0 0 8px 3px #54a0ff !important;
+    border: 2px solid #54a0ff !important;
+}
+.ai-highlight-2 { 
+    box-shadow: 0 0 8px 3px #ff9f43 !important;
+    border: 2px solid #ff9f43 !important;
+}
+
+/* Радужная Анимация исчезновения */
+.clearing {
+    animation: rainbow-fade 0.4s ease-in-out forwards;
+}
+
+@keyframes rainbow-fade {
+    0% { background-color: #ff0084; transform: scale(1); opacity: 1; }
+    50% { background-color: #3300ff; }
+    100% { background-color: #00ff00; transform: scale(0); opacity: 0; }
+}
+
+/* Панель Фигур */
+.next-blocks-panel {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f8f8f8;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .next-blocks-panel {
+    background-color: #34495e;
+    border-color: #5d6d7e;
+}
+
+#next-blocks {
+    display: flex;
+    justify-content: space-around;
+    align-items: center; 
+    padding: 10px 0;
+    min-height: 100px;
+}
+
+.shape-container {
+    width: 80px;
+    height: 80px;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    cursor: grab; 
+    background: none; 
+    box-shadow: none;
+    border-radius: 8px;
+    transition: box-shadow 0.2s, opacity 0.2s;
+}
+
+.shape-container.is-dragging {
+     opacity: 0.01;
+     box-shadow: none;
+}
+
+/* Подсветка фигуры, когда она является целью ИИ */
+.shape-container.ai-target-0 { box-shadow: 0 0 0 3px #1dd1a1; }
+.shape-container.ai-target-1 { box-shadow: 0 0 0 3px #54a0ff; }
+.shape-container.ai-target-2 { box-shadow: 0 0 0 3px #ff9f43; }
+
+.shape-container[draggable="true"]:hover {
+     box-shadow: 0 0 0 2px #6c5ce7;
+}
+
+.shape {
+    display: grid;
+}
+
+.block {
+    width: 25px;
+    height: 25px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+body.dark-mode .block {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* === ГРАДИЕНТНЫЕ КНОПКИ === */
+.game-button {
+    padding: 10px 10px;
+    flex-grow: 1;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px; 
+    font-weight: 600;
+    transition: all 0.2s;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-size: 200% auto;
+}
+
+.game-button:hover {
+    background-position: right center;
+}
+
+.game-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.button-primary {
+    background-image: linear-gradient(to right, #4a42f5 0%, #6c5ce7 100%);
+}
+
+.button-secondary {
+    background-image: linear-gradient(to right, #2ecc71 0%, #27ae60 100%);
+}
+
+.button-danger {
+    background-image: linear-gradient(to right, #e74c3c 0%, #c0392b 100%);
+}
+
+.button-settings {
+    background-image: linear-gradient(to right, #f39c12 0%, #d35400 100%);
+}
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    color: #333;
+    text-align: left;
+}
+
+body.dark-mode .modal-content {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #e74c3c;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #4a42f5;
+}
+
+body.dark-mode .modal-content h2 {
+    color: #2ecc71;
+    border-bottom: 2px solid #5d6d7e;
+}
+
+/* Стили формы */
+.auth-form input[type="email"], 
+.auth-form input[type="password"],
+.edit-profile-form input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 15px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+body.dark-mode .auth-form input,
+body.dark-mode .edit-profile-form input {
+    background-color: #2c3e50;
+    border: 1px solid #5d6d7e;
+    color: #ecf0f1;
+}
+
+.auth-form button, 
+.edit-profile-form button {
+    margin-top: 10px;
+}
+
+/* Стили таблицы лидеров */
+#leaderboard-list {
+    list-style: none;
+    padding: 0;
+}
+
+#leaderboard-list li {
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+body.dark-mode #leaderboard-list li {
+    border-bottom: 1px dashed #5d6d7e;
+}
+
+#leaderboard-list li:last-child {
+    border-bottom: none;
+}
+
+#leaderboard-list li strong {
+    color: #ff9f43;
+    min-width: 30px;
+    text-align: center;
+}
+
+#leaderboard-list li span {
+    font-weight: 600;
+    color: #6c5ce7;
+}
+
+body.dark-mode #leaderboard-list li span {
+    color: #2ecc71;
+}
+
+/* Стили выбора режима */
+.mode-selection-button {
+    display: block;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    text-align: left;
+    border: 2px solid transparent;
+    background-color: #ecf0f1;
+    color: #333;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%);
+    background-size: 200% auto;
+    color: #333;
+}
+
+.mode-selection-button.active {
+    border-color: #6c5ce7;
+    background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
+    color: white;
+    box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+}
+
+body.dark-mode .mode-selection-button:not(.active) {
+    background-image: linear-gradient(to right, #5d6d7e 0%, #4a5d6e 100%);
+    color: #ecf0f1;
+}
+
+/* === КРЕДИТЫ / КОПИРАЙТА === */
+.sanwec-credit {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.2em;
+    text-align: center;
+    margin-top: 30px;
+    background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00, #ff0084);
+    background-size: 400% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text-flow 4s linear infinite;
+}
+@keyframes text-flow {
+    to { background-position: 400% center; }
+}
