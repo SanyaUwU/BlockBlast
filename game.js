@@ -352,9 +352,8 @@ function executeClearsAndScoring() {
     if (clearedLines > 0) {
         isClearing = true;
         
-        // --- НОВАЯ ЛОГИКА КОМБО: Успешный раунд увеличивает комбо ---
+        // НОВАЯ ЛОГИКА КОМБО: Успешный раунд увеличивает комбо
         comboCount++; 
-        // -----------------------------------------------------------
         
         let baseScore = cellsToClear.size * 10; 
         // Бонус теперь зависит от накопительного comboCount
@@ -397,17 +396,12 @@ function executeClearsAndScoring() {
         
         return true; 
     } else {
-        // --- ЛОГИКА КОМБО: Неуспешный раунд сбрасывает комбо ---
-        // Если очистки не было, comboCount сбрасывается, но это делает уже placeShape 
-        // после проверки 'if (!clearAnimationStarted)'
-        // --------------------------------------------------------
-        
+        // Если очистки не было, placeShape сбросит comboCount
         return false; 
     }
 }
 
 function checkGameOver() {
-    // ... (Логика без изменений)
     const remainingShapes = currentShapes.filter(s => s !== null);
     
     if (remainingShapes.length > 0) {
@@ -434,7 +428,6 @@ function checkGameOver() {
 }
 
 function endGame() {
-    // ... (Логика без изменений)
     if (score > window.highScore) {
         window.highScore = score;
         highScoreValueElement.textContent = window.highScore;
@@ -455,7 +448,7 @@ function endGame() {
 function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     const pattern = shapeData.pattern;
     
-    // FIX 2: Убеждаемся, что ход вообще возможен
+    // Убеждаемся, что ход вообще возможен
     if (!canPlaceShape(pattern, startRow, startCol, boardState)) { 
          return -Infinity; 
     }
@@ -598,7 +591,7 @@ function highlightAIBestMoves() {
 }
 
 // --- DRAG & DROP ФУНКЦИИ ---
-// (В этих функциях изменений нет)
+
 function handleDragStart(event) {
     if (isClearing) {
         event.preventDefault();
