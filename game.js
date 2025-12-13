@@ -7,8 +7,8 @@ const NORMAL_MODE = 'normal';
 const TRAINING_MODE = 'training';
 
 // --- ИИ КОНСТАНТЫ ---
-const AI_COMBO_WEIGHT = 10000; // Увеличен для приоритета очистки
-const AI_OCCUPIED_PENALTY = 10; // Увеличен для предотвращения бессмысленного заполнения
+const AI_COMBO_WEIGHT = 10000;
+const AI_OCCUPIED_PENALTY = 10;
 
 // --- СОХРАНЕНИЕ СЕССИИ ---
 const SESSION_KEY = 'blockBlastSession';
@@ -27,12 +27,20 @@ let comboCount = 0;
 let hasClearedInCurrentSet = false; 
 let currentBestPlacements = []; 
 let isClearing = false; 
-let totalLinesCleared = 0; // Переменная для отслеживания общего количества очищенных линий
+let totalLinesCleared = 0;
 
 // Делаем переменные глобально доступными для auth.js
 window.highScore = highScore;
-window.updateHighScore = null; 
-window.updateGameHistory = null; 
+window.updateHighScore = (newScore) => {
+    // Эта функция будет переопределена в auth.js, если Firebase загружен
+    // Временно сохраняем в LocalStorage
+    localStorage.setItem('highScore', newScore.toString());
+}; 
+window.updateGameHistory = (history) => {
+    // Эта функция будет переопределена в auth.js, если Firebase загружен
+    // Временно сохраняем в LocalStorage
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}; 
 
 // --- DOM ЭЛЕМЕНТЫ (Game) ---
 const gameBoardElement = document.getElementById('game-board');
@@ -43,7 +51,7 @@ const comboDisplay = document.getElementById('combo-display');
 const modeInfoElement = document.getElementById('mode-info');
 const newGameButton = document.getElementById('new-game-button');
 const modeButton = document.getElementById('mode-button');
-const modeModal = document.getElementById('mode-modal');
+const modeModalElement = document.getElementById('mode-modal');
 const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
 const themeToggleButton = document.getElementById('theme-toggle-button');
 const aiHintMessageElement = document.getElementById('ai-hint-message');
@@ -68,6 +76,18 @@ const SHAPES = [
     { size: 5, color: '#9b59b6', pattern: [[1,1,1],[0,1,0],[0,1,0]] },
     { size: 9, color: '#f1c40f', pattern: [[1,1,1],[1,1,1],[1,1,1]] },
 ];
+
+/**
+ * Вспомогательная функция для получения экземпляра модального окна Bootstrap
+ */
+function getBootstrapModalInstance(element) {
+    if (!element || typeof bootstrap === 'undefined') return { show: () => {}, hide: () => {} };
+    let modalInstance = bootstrap.Modal.getInstance(element);
+    if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(element);
+    }
+    return modalInstance;
+}
 
 // --- ФУНКЦИИ УПРАВЛЕНИЯ ИГРОЙ И СЕССИЕЙ ---
 
@@ -97,8 +117,12 @@ function initializeGame(mode) {
     gameMode = mode;
     currentBestPlacements = [];
     isClearing = false;
-    totalLinesCleared = 0; // Сброс
+    totalLinesCleared = 0;
     
+    // Обновляем High Score при инициализации, используя глобальный window.highScore
+    window.highScore = parseInt(localStorage.getItem('highScore') || '0', 10);
+    highScoreValueElement.textContent = window.highScore;
+
     scoreValueElement.textContent = score;
     comboDisplay.style.opacity = 0;
     
@@ -118,16 +142,14 @@ function saveGameSession() {
         hasClearedInCurrentSet: hasClearedInCurrentSet, 
         gameMode: gameMode,
         currentShapes: currentShapes.map(s => s ? { ...s, pattern: s.pattern.map(row => [...row]) } : null),
-        totalLinesCleared: totalLinesCleared // Сохраняем линии
+        totalLinesCleared: totalLinesCleared
     };
     
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-    console.log("Состояние игры сохранено.");
 }
 
 function clearGameSession() {
     localStorage.removeItem(SESSION_KEY);
-    console.log("Состояние игры очищено.");
 }
 
 function loadGameSession() {
@@ -142,12 +164,12 @@ function loadGameSession() {
         comboCount = sessionData.comboCount;
         hasClearedInCurrentSet = sessionData.hasClearedInCurrentSet || false; 
         gameMode = sessionData.gameMode;
-        totalLinesCleared = sessionData.totalLinesCleared || 0; // Загружаем линии
+        totalLinesCleared = sessionData.totalLinesCleared || 0;
         
         currentShapes = sessionData.currentShapes.map(savedShape => {
             if (!savedShape) return null;
+            // Поиск фигуры по паттерну/цвету
             return SHAPES.find(s => 
-                s.size === savedShape.size && 
                 s.color === savedShape.color && 
                 JSON.stringify(s.pattern) === JSON.stringify(savedShape.pattern)
             ) || savedShape; 
@@ -158,7 +180,6 @@ function loadGameSession() {
         drawBoard();
         renderNextBlocks(); 
         
-        console.log("Состояние игры загружено.");
         return true;
     } catch (e) {
         console.error("Ошибка при загрузке сессии:", e);
@@ -175,20 +196,16 @@ function saveGameHistory() {
         date: new Date().toISOString()
     };
 
-    // Получаем текущую историю из LocalStorage
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
     
-    // Добавляем новую запись
     history.unshift(historyEntry); 
     
-    // Обрезаем до MAX_HISTORY_GAMES
     if (history.length > MAX_HISTORY_GAMES) {
         history = history.slice(0, MAX_HISTORY_GAMES);
     }
     
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 
-    // Если auth.js установлен, обновляем историю в Firebase
     if (window.updateGameHistory && window.currentUser) {
         window.updateGameHistory(history);
     }
@@ -262,6 +279,7 @@ function renderNextBlocks() {
         const shapeContainer = createShapeElement(shapeData, index);
         nextBlocksElement.appendChild(shapeContainer);
         if (shapeData) {
+            // Добавляем обработчики Drag & Drop
             shapeContainer.addEventListener('dragstart', handleDragStart);
             shapeContainer.addEventListener('dragend', handleDragEnd);
         }
@@ -413,7 +431,7 @@ function executeClearsAndScoring() {
         score += bonusScore;
         scoreValueElement.textContent = score;
 
-        // Анимация очистки
+        // Анимация очистки (добавление класса 'clearing')
         cellsToClear.forEach(key => {
             const [r, c] = key.split('-').map(Number);
             const cell = gameBoardElement.querySelector(`[data-row="${r}"][data-col="${c}"]`);
@@ -482,12 +500,14 @@ function endGame() {
             window.highScore = score;
             highScoreValueElement.textContent = window.highScore;
             
-            // Сохранение рекорда
-            if (typeof window.updateHighScore === 'function' && window.currentUser) {
+            // Сохранение рекорда (используем глобальную функцию)
+            if (typeof window.updateHighScore === 'function') {
                 window.updateHighScore(window.highScore);
             }
         }
     }
+    
+    clearGameSession();
     
     setTimeout(() => {
         let message = `Игра окончена! Ваш финальный счет: ${score}`;
@@ -507,7 +527,7 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     const pattern = shapeData.pattern;
     
     if (!canPlaceShape(pattern, startRow, startCol, boardState)) { 
-         return -Infinity; 
+           return -Infinity; 
     }
     
     let tempCells = boardState.map(row => [...row]); 
@@ -522,13 +542,13 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
 
     const { clearedLines } = checkClears(tempCells); 
 
-    let score = 0;
+    let currentScore = 0;
     
     if (clearedLines > 0) {
-        score += clearedLines * clearedLines * AI_COMBO_WEIGHT; 
+        currentScore += clearedLines * clearedLines * AI_COMBO_WEIGHT; 
     }
     
-    score += shapeData.size;
+    currentScore += shapeData.size;
     
     let occupiedCells = 0;
     for (let r = 0; r < BOARD_SIZE; r++) {
@@ -538,9 +558,9 @@ function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
             }
         }
     }
-    score -= occupiedCells * AI_OCCUPIED_PENALTY; 
+    currentScore -= occupiedCells * AI_OCCUPIED_PENALTY; 
 
-    return score;
+    return currentScore;
 }
 
 function calculateBestMoves() {
@@ -617,7 +637,7 @@ function highlightAIBestMoves() {
     let validPlacements = currentBestPlacements.filter(p => p !== null);
     
     if (validPlacements.length === 0) {
-        if (aiHintMessageElement) aiHintMessageElement.textContent = '⛔'; 
+        if (aiHintMessageElement) aiHintMessageElement.textContent = '⛔ Нет возможных ходов.'; 
         return;
     }
     
@@ -637,7 +657,7 @@ function highlightAIBestMoves() {
     });
     
     if (aiHintMessageElement) {
-        aiHintMessageElement.textContent = ''; 
+        aiHintMessageElement.textContent = 'Подсвечены лучшие ходы ИИ.'; 
     }
 }
 
@@ -660,13 +680,16 @@ function handleDragStart(event) {
     
     const shapeData = currentShapes[draggedShapeIndex];
     if (!shapeData) return;
-    const blockWidth = shapeRect.width / shapeData.pattern[0].length;
-    const blockHeight = shapeRect.height / shapeData.pattern.length;
+    const pattern = shapeData.pattern;
+    
+    // Вычисляем размеры блока на основе размеров контейнера
+    const blockWidth = shapeRect.width / pattern[0].length;
+    const blockHeight = shapeRect.height / pattern.length;
     
     let clickedRow = 0;
     let clickedCol = 0;
-    const pattern = shapeData.pattern;
     
+    // Находим блок, на который кликнули
     for (let r = 0; r < pattern.length; r++) {
         for (let c = 0; c < pattern[0].length; c++) {
             if (pattern[r][c] === 1) {
@@ -674,17 +697,18 @@ function handleDragStart(event) {
                     y >= r * blockHeight && y < (r + 1) * blockHeight) {
                     clickedRow = r;
                     clickedCol = c;
+                    r = pattern.length; 
                     break;
                 }
             }
         }
-        if (clickedRow !== 0 || clickedCol !== 0) break;
     }
 
     dragOffset = { row: clickedRow, col: clickedCol };
     
+    // Устанавливаем Drag Image
     const dragImage = shapeContainer.cloneNode(true);
-    dragImage.style.opacity = '0.5';
+    dragImage.style.opacity = '0.7';
     dragImage.style.position = 'absolute';
     dragImage.style.left = '-1000px'; 
     document.body.appendChild(dragImage);
@@ -702,6 +726,7 @@ function handleDragEnd(event) {
     shapeContainer.classList.remove('is-dragging');
     draggedShapeIndex = -1;
     
+    // Очистка предварительного размещения
     document.querySelectorAll('.potential-placement').forEach(cell => {
         cell.classList.remove('potential-placement');
         cell.style.backgroundColor = ''; 
@@ -717,6 +742,7 @@ function handleDragOver(event) {
     const targetCell = event.target.closest('.cell');
     if (!targetCell || draggedShapeIndex === -1 || isClearing) return;
     
+    // Очистка предыдущей подсветки
     document.querySelectorAll('.potential-placement').forEach(cell => {
         cell.classList.remove('potential-placement');
         if (!cell.classList.contains('filled')) {
@@ -753,6 +779,7 @@ function handleDrop(event) {
     event.preventDefault();
     const targetCell = event.target.closest('.cell');
     
+    // Очистка предварительного размещения (даже если drop неудачный)
     document.querySelectorAll('.potential-placement').forEach(cell => {
         cell.classList.remove('potential-placement');
         cell.style.backgroundColor = ''; 
@@ -775,7 +802,9 @@ function handleDrop(event) {
 // --- ФУНКЦИИ UI/НАСТРОЕК ---
 
 function selectMode(mode) {
-    modeModal.style.display = 'none';
+    const modalInstance = getBootstrapModalInstance(modeModalElement);
+    modalInstance.hide(); // Закрываем модальное окно через Bootstrap JS
+    
     if (mode !== gameMode) {
         if (confirm(`Вы действительно хотите изменить режим на "${mode}"? Ваша текущая игра будет сброшена.`)) {
              initializeGame(mode);
@@ -804,6 +833,8 @@ function toggleTheme() {
 
 // --- ИНИЦИАЛИЗАЦИЯ ИГРЫ ---
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // Инициализация Drag & Drop на доске
     gameBoardElement.addEventListener('dragover', handleDragOver);
     gameBoardElement.addEventListener('drop', handleDrop);
     
@@ -813,16 +844,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    modeButton.onclick = () => {
-        modeModal.style.display = 'block';
-        modeSelectionButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.mode === gameMode) {
-                btn.classList.add('active');
-            }
-        });
-    };
-    
+    // Обработчик кнопки Режим (использует модальное окно Bootstrap)
+    // bootstrap.bundle.min.js автоматически обрабатывает открытие модального окна, 
+    // если на кнопке есть data-bs-toggle="modal" и data-bs-target="#mode-modal".
+
     modeSelectionButtons.forEach(btn => {
         btn.onclick = (e) => selectMode(e.currentTarget.dataset.mode);
     });
@@ -837,6 +862,10 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggleButton.onclick = toggleTheme;
     }
     
+    // Устанавливаем начальный high score, который может быть перезаписан auth.js
+    window.highScore = parseInt(localStorage.getItem('highScore') || '0', 10);
+    highScoreValueElement.textContent = window.highScore;
+
     if (!loadGameSession()) {
         initializeGame(NORMAL_MODE);
     }
