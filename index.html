@@ -3,112 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLOCK BLAST Adventure Master</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <title>Block Blast Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container-fluid app-container">
+        
+        <header class="game-header">
+            <div class="score-box">
+                <span class="label">Счет</span>
+                <span id="score-value">0</span>
+            </div>
+            <div class="score-box high-score">
+                <span class="label">Рекорд</span>
+                <span id="high-score-value">0</span>
+            </div>
+        </header>
+
+        <div id="mode-info" class="mode-info">Режим: Обычный</div>
+        <div id="ai-hint-message" class="ai-hint-message"></div>
+
+        <div id="game-board" class="game-board">
+            </div>
+
+        <div id="combo-display" class="combo-display">КОМБО!</div>
+
+        <div id="next-blocks" class="next-blocks">
+            </div>
+
+        <footer class="game-controls">
+            <button id="new-game-button" class="btn btn-primary">Новая Игра</button>
+            <button id="mode-button" class="btn btn-secondary">Режим</button>
+            <button id="theme-toggle-button" class="btn btn-info">Темная тема</button>
+            <button id="profile-button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#profile-modal">Профиль</button>
+        </footer>
+
+    </div>
+
+    <div class="modal fade" id="mode-modal" tabindex="-1" aria-labelledby="mode-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mode-modal-label">Выберите Режим Игры</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-muted">Смена режима сбросит текущий прогресс.</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-lg btn-primary mode-selection-button active" data-mode="normal">Обычный</button>
+                        <button class="btn btn-lg btn-warning mode-selection-button" data-mode="training">Тренировка (ИИ)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="profile-modal" tabindex="-1" aria-labelledby="profile-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profile-modal-label">Ваш Профиль</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="profile-content">
+                    
+                    <div id="logged-in-profile">
+                        <div class="text-center mb-4">
+                            <img id="profile-avatar" src="default_avatar.png" alt="Аватар пользователя" 
+                                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color);">
+                            
+                            <input type="file" id="avatar-upload-input" style="display: none;" accept="image/*">
+                            <button class="btn btn-sm btn-outline-primary mt-2" 
+                                    onclick="document.getElementById('avatar-upload-input').click()">
+                                Изменить аватар
+                            </button>
+                            <div id="avatar-status-message" class="mt-1 small text-muted"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <strong>Имя пользователя:</strong> <span id="profile-display-name">Гость</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Рекорд:</strong> <span id="profile-high-score">0</span>
+                        </div>
+
+                        <h5 class="mt-4 mb-3 border-bottom pb-2">Последние 3 игры</h5>
+                        <ul class="list-group" id="game-history-list">
+                            <li class="list-group-item text-secondary">История игр пуста.</li>
+                        </ul>
+                        
+                        <hr>
+                        <button id="logout-button" class="btn btn-danger w-100">Выход</button>
+                    </div>
+
+                    <div id="guest-profile" style="display:none;">
+                        <h4 class="mb-3">Вход / Регистрация</h4>
+                        <div class="alert alert-warning" role="alert">
+                            Войдите, чтобы сохранять Рекорд и Историю игр!
+                        </div>
+                        <form id="auth-form">
+                            <div class="mb-3">
+                                <input type="email" id="auth-email" class="form-control" placeholder="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" id="auth-password" class="form-control" placeholder="Пароль" required>
+                            </div>
+                            <div id="auth-message" class="text-danger mb-3"></div>
+                            <button type="submit" id="login-button" class="btn btn-success w-100 mb-2">Войти</button>
+                            <button type="button" id="register-button" class="btn btn-outline-success w-100">Зарегистрироваться</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-</head>
-<body>
-    <div class="game-container">
-        <h1>BLOCK BLAST</h1>
-        <div class="header-buttons">
-            <button id="auth-button" class="game-button button-primary" data-modal="auth">Вход/Регистрация</button>
-            <button id="leaderboard-button" class="game-button button-secondary" data-modal="leaderboard">Топ 10</button>
-            <button id="mode-button" class="game-button button-settings" data-modal="mode">Режим</button>
-            <button id="theme-toggle-button" class="game-button button-settings" data-modal="settings">Светлая тема</button>
-        </div>
-        
-        <div class="score-panel">
-            <span>Счет: <span id="score-value">0</span></span>
-            <span>Рекорд: <span id="high-score-value">0</span></span>
-        </div>
-        <div id="combo-display"></div>
-        <div id="mode-info"></div>
-
-        <div id="game-board">
-            </div>
-
-        <div id="ai-hint-message" style="color: #4a42f5; font-weight: 600; margin-top: 10px; min-height: 1.2em; transition: opacity 0.3s;"></div>
-        
-        <div class="next-blocks-panel">
-            <div id="next-blocks">
-                </div>
-        </div>
-        
-        <button id="new-game-button" class="game-button button-danger" style="margin-top: 20px;">Новая игра</button>
-        
-        <div class="sanwec-credit">
-            © 2024 BLOCK BLAST
-        </div>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     
-    <div id="auth-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" data-modal="auth">&times;</span>
-            <h2>Вход / Регистрация</h2>
-            <form id="auth-form" class="auth-form">
-                <input type="email" id="auth-email" placeholder="Email" required>
-                <input type="password" id="auth-password" placeholder="Пароль" required>
-                <button type="submit" id="auth-login-button" class="game-button button-primary" style="width: 100%;">Войти</button>
-                <button type="button" id="auth-toggle-button" class="game-button button-secondary" style="width: 100%; margin-top: 5px;">Нет аккаунта? Регистрация</button>
-            </form>
-            <p id="auth-message" style="color: #e74c3c; margin-top: 10px;"></p>
-            <div style="margin-top: 15px; text-align: center;">
-                <button id="logout-button" class="game-button button-danger" style="width: 100%; display: none;">Выйти</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="leaderboard-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" data-modal="leaderboard">&times;</span>
-            <h2>Таблица лидеров</h2>
-            <ul id="leaderboard-list">
-                </ul>
-        </div>
-    </div>
-    
-    <div id="mode-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" data-modal="mode">&times;</span>
-            <h2>Выбор режима игры</h2>
-            <button class="mode-selection-button" data-mode="normal">
-                <strong>Обычный (Classic)</strong><br>
-                <span>Классическая игра на выживание.</span>
-            </button>
-            <button class="mode-selection-button" data-mode="training">
-                <strong>Тренировка (AI Hint)</strong><br>
-                <span>ИИ показывает свой лучший ход. Идеально для обучения.</span>
-            </button>
-        </div>
-    </div>
-    
-    <div id="profile-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" data-modal="profile">&times;</span>
-            <h2>Профиль игрока</h2>
-            <p id="profile-nickname">Никнейм: Загрузка...</p>
-            <p id="profile-email">Email: Загрузка...</p>
-            <p id="profile-high-score">Рекорд: 0</p>
-            
-            <button id="edit-profile-button" class="game-button button-primary" style="width: 100%; margin-top: 15px; display: none;">Редактировать никнейм</button>
-            
-            <form id="edit-profile-form" class="edit-profile-form" style="display: none; margin-top: 15px;">
-                <label for="edit-nickname-input" style="display: block; margin-top: 15px; margin-bottom: 5px;">Новый никнейм:</label>
-                <input type="text" id="edit-nickname-input" placeholder="Введите никнейм" required minlength="3">
-                <button type="submit" class="game-button button-secondary" style="width: 100%;">Сохранить</button>
-                <button type="button" id="cancel-edit-button" class="game-button button-danger" style="width: 100%; margin-top: 5px;">Отмена</button>
-            </form>
-            <p id="profile-message" style="color: #e74c3c; margin-top: 10px;"></p>
-        </div>
-    </div>
-
-    <script src="game.js"></script>
     <script src="auth.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
