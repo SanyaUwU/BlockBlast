@@ -2,13 +2,13 @@
 (function() {
     // --- КОНФИГУРАЦИЯ FIREBASE ---
     const firebaseConfig = {
-        apiKey: "AIzaSyCZDX-LeysLeE7tOAmhT3iwQ", // Использование заглушки
-        authDomain: "block-blast-leader.firebaseapp.com",
-        projectId: "block-blast-leader",
-        storageBucket: "block-blast-leader.firebasestorage.app",
-        messagingSenderId: "435353232888",
-        appId: "1:435353232888:web:79480b0345c0209e8d220d",
-        measurementId: "G-ZKCKX6NBKZ"
+      apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
+      authDomain: "block-blast-leader.firebaseapp.com",
+      projectId: "block-blast-leader",
+      storageBucket: "block-blast-leader.firebasestorage.app",
+      messagingSenderId: "435353232888",
+      appId: "1:435353232888:web:79480b0345c0209e8d220d",
+      measurementId: "G-ZKCKX6NBKZ"
     };
 
     // --- КОНСТАНТЫ (ИЗОЛИРОВАНЫ) ---
