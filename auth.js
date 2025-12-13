@@ -2,7 +2,7 @@
 (function() {
     // --- КОНФИГУРАЦИЯ FIREBASE ---
     const firebaseConfig = {
-        apiKey: "AIzaSyCZDfxdQ7VGTZEw-LeysLeE7tOAmhT3iwQ",
+        apiKey: "AIzaSyCZDX-LeysLeE7tOAmhT3iwQ", // Использование заглушки
         authDomain: "block-blast-leader.firebaseapp.com",
         projectId: "block-blast-leader",
         storageBucket: "block-blast-leader.firebasestorage.app",
@@ -13,6 +13,7 @@
 
     // --- КОНСТАНТЫ (ИЗОЛИРОВАНЫ) ---
     const HISTORY_KEY = 'gameHistory'; 
+    const DISPLAY_HISTORY_LIMIT = 3; // Ограничение на отображение истории (3 игры)
 
     // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ (Auth) ---
     let currentUser = null;
@@ -45,7 +46,7 @@
     const avatarUploadInput = document.getElementById('avatar-upload-input');
     const avatarStatusMessage = document.getElementById('avatar-status-message');
     const gameHistoryList = document.getElementById('game-history-list');
-
+    const avatarUploadSection = document.getElementById('avatar-upload-section'); // ДОБАВЛЕНО
 
     // Инициализируем Firebase
     if (typeof firebase !== 'undefined' && !firebase.apps.length) {
@@ -96,11 +97,13 @@
     window.updateGameHistory = async (historyData) => {
         if (!currentUser) return;
         try {
-            // Ограничиваем историю до 5 записей
+            // Ограничиваем историю до 5 записей (это для хранения)
             const limitedHistory = historyData.slice(0, 5); 
             await db.collection('users').doc(currentUser.uid).set({
                 gameHistory: limitedHistory
             }, { merge: true });
+            // Вызываем loadGameHistory для обновления UI, передавая полную историю, 
+            // которая будет ограничена до 3-х внутри.
             loadGameHistory(limitedHistory); 
         } catch (error) {
             console.error("Ошибка при обновлении истории игр:", error);
@@ -117,12 +120,14 @@
         if (avatarStatusMessage) avatarStatusMessage.textContent = 'Загрузка...';
         
         const fileExtension = file.name.split('.').pop();
-        const fileName = `${currentUser.uid}.${fileExtension}`;
+        // Используем метку времени в имени файла для обхода кеширования
+        const fileName = `${currentUser.uid}_${Date.now()}.${fileExtension}`; 
         const storageRefPath = storage.ref(`avatars/${currentUser.uid}/${fileName}`);
         const uploadTask = storageRefPath.put(file);
 
         uploadTask.on('state_changed', 
             (snapshot) => {
+                // Логика отслеживания прогресса для исправления "зависания на 0%"
                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 if (avatarStatusMessage) avatarStatusMessage.textContent = `Загрузка: ${Math.round(progress)}%`;
             }, 
@@ -155,7 +160,10 @@
         if (!gameHistoryList) return; 
 
         // Если история передана из Firebase, используем ее. Иначе читаем из LocalStorage (для неавторизованных)
-        const games = history || JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        const allGames = history || JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        
+        // ИЗМЕНЕНИЕ: Ограничиваем до 3 последних игр для отображения
+        const games = allGames.slice(0, DISPLAY_HISTORY_LIMIT); 
         
         gameHistoryList.innerHTML = '';
         
@@ -225,8 +233,24 @@
         currentProfileUserId = userId;
         if (profileMessage) profileMessage.textContent = 'Загрузка данных...';
         
+        // Скрываем форму редактирования по умолчанию
         if (editProfileButton) editProfileButton.style.display = 'none';
         if (editProfileForm) editProfileForm.style.display = 'none';
+        
+        const isCurrentUser = currentUser && currentUser.uid === userId; 
+        
+        // --- ИЗМЕНЕНИЕ: Управление видимостью секции загрузки аватара и кнопок ---
+        if (avatarUploadSection) { 
+            // Кнопка загрузки аватара видна только для своего профиля
+            avatarUploadSection.style.display = isCurrentUser ? 'block' : 'none';
+        }
+
+        const profileFooter = document.querySelector('#profile-modal .modal-body .d-flex.justify-content-between');
+        if (profileFooter) {
+            // Секция с кнопками (Редактировать/Выход) видна только для своего профиля
+            profileFooter.style.display = isCurrentUser ? 'flex' : 'none'; 
+        }
+
 
         try {
             const doc = await db.collection("users").doc(userId).get();
@@ -237,23 +261,26 @@
             }
             
             const data = doc.data();
-            const isCurrentUser = currentUser && currentUser.uid === userId; 
-
+            
             const nickname = data.nickname || (data.email ? data.email.split('@')[0] : 'Anon');
             
             if (profileNicknameElement) profileNicknameElement.textContent = `Никнейм: ${nickname}`;
             if (profileHighScoreElement) profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
             
             if (profileEmailElement) {
+                // Email показываем только для своего профиля
                 profileEmailElement.textContent = isCurrentUser 
                     ? `Email: ${data.email || 'Нет'}` 
                     : `Email: Скрыто`; 
             }
             
             if (profileAvatarImg) profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
-            loadGameHistory(data.gameHistory);
+            
+            // Передаем историю конкретного пользователя, которая будет обрезана до 3 в loadGameHistory
+            loadGameHistory(data.gameHistory); 
 
             if (isCurrentUser) {
+                // Если это свой профиль, показываем кнопку редактирования
                 if (editProfileButton) editProfileButton.style.display = 'block';
             }
             
