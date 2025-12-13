@@ -1,143 +1,164 @@
-/* Анимация градиента */
+/* Переменные для Цветов */
+:root {
+    --primary-color: #4a42f5; /* Синий/Фиолетовый */
+    --secondary-color: #2ecc71; /* Зеленый */
+    --danger-color: #e74c3c; /* Красный */
+    --warning-color: #ff9f43; /* Оранжевый */
+    --info-color: #0dcaf0; /* Голубой (для Bootstrap) */
+    --text-light: #ecf0f1;
+    --text-dark: #333;
+    --bg-light: #ffffff;
+    --bg-dark: #2c3e50;
+    --board-light: #dfe6e9;
+    --board-dark: #34495e;
+}
+
+/* Анимация градиента фона */
 @keyframes background-animation {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
-/* Общие стили */
+/* Общие стили Body */
 body {
     font-family: 'Poppins', sans-serif; 
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
-    padding: 30px;
+    padding: 20px 0;
     transition: background-color 0.3s, color 0.3s;
-    /* Яркий анимированный градиент */
     background: linear-gradient(-45deg, #4a42f5, #6c5ce7, #a29bfe, #4a42f5);
     background-size: 400% 400%;
     animation: background-animation 20s ease infinite;
-    color: #ecf0f1;
+    color: var(--text-dark); /* Базовый цвет текста для светлой темы */
 }
 
-.game-container {
-    background-color: #ffffff;
+/* Стили контейнера приложения */
+.app-container {
+    background-color: var(--bg-light);
     padding: 25px;
     border-radius: 15px; 
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); 
     text-align: center;
-    max-width: 380px;
-    transition: background-color 0.3s, box-shadow 0.3s;
+    max-width: 400px;
     width: 100%;
-}
-
-/* Темная тема */
-body.dark-mode {
-    color: #ecf0f1;
-    background: linear-gradient(-45deg, #1e1e2f, #3a3a5a, #1e1e2f, #3a3a5a);
-    background-size: 400% 400%;
-    animation: background-animation 20s ease infinite;
-}
-
-body.dark-mode .game-container {
-    background-color: #2c3e50;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
-}
-
-body.dark-mode h1 {
-    color: #ffeaa7;
-}
-
-body.dark-mode .score-panel, body.dark-mode #mode-info {
-    color: #ecf0f1;
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 h1 {
     font-weight: 700;
-    color: #ff6b6b; 
+    color: var(--danger-color); 
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    transition: color 0.3s;
     margin-top: 0;
-    margin-bottom: 15px;
-}
-
-/* Комбо дисплей */
-#combo-display {
-    font-weight: 700;
-    text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
-    letter-spacing: 1px;
-    transition: opacity 0.5s;
-    color: #e67e22;
-    font-size: 1.1em;
-    opacity: 0;
-    min-height: 1.2em;
-}
-
-/* Стили для панели счета */
-.score-panel {
-    font-size: 1.3em;
     margin-bottom: 20px;
-    font-weight: 600;
-    color: #333;
+    font-size: 2em;
+}
+
+/* Стили шапки и счета (Score Panel) */
+.game-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    margin-bottom: 20px;
+    gap: 10px;
 }
 
+.score-box {
+    flex-grow: 1;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.score-box .label {
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #777;
+}
+
+.score-box span:not(.label) {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.score-box.high-score span:not(.label) {
+    color: var(--warning-color);
+}
+
+/* Инфо о режиме и подсказке ИИ */
 #mode-info {
     font-size: 0.9em;
-    font-weight: 400;
-    margin-top: 5px;
+    font-weight: 600;
+    margin-bottom: 15px;
     min-height: 1.1em;
     color: #7f8c8d;
 }
 
-/* Кнопки в шапке */
-.header-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px; 
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+#ai-hint-message {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 10px;
+    min-height: 1.2em;
+    transition: opacity 0.3s;
 }
 
-/* Сетка */
+/* Комбо Дисплей */
+#combo-display {
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
+    letter-spacing: 1px;
+    color: #e67e22;
+    font-size: 1.5em;
+    opacity: 0;
+    min-height: 1.2em;
+    margin-bottom: 10px;
+    transition: opacity 0.5s;
+}
+
+/* Сетка Игрового Поля */
 #game-board {
     width: 320px; /* 8 * 40px */
     height: 320px; /* 8 * 40px */
     display: grid;
     grid-template-columns: repeat(8, 1fr); 
     grid-template-rows: repeat(8, 1fr);   
-    border: 6px solid #ff9f43; 
+    border: 6px solid var(--warning-color);
     border-radius: 8px; 
-    background-color: #dfe6e9;
+    background-color: var(--board-light);
     margin: 0 auto 25px auto;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
     transition: border-color 0.3s, background-color 0.3s;
-}
-
-body.dark-mode #game-board {
-    background-color: #34495e;
-    border-color: #2ecc71;
 }
 
 .cell {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    border: 1px solid #b2bec3; 
+    border: 1px solid #b2bec3;
     transition: background-color 0.1s, opacity 0.1s, transform 0.1s;
-}
-
-body.dark-mode .cell {
-    border: 1px solid #7f8c8d;
 }
 
 .filled {
     border: none;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); 
     opacity: 1 !important;
+}
+
+/* Анимация исчезновения */
+.clearing {
+    animation: rainbow-fade 0.4s ease-in-out forwards;
+}
+
+@keyframes rainbow-fade {
+    0% { background-color: #ff0084; transform: scale(1); opacity: 1;}
+    50% { background-color: #3300ff; }
+    100% { background-color: #00ff00; transform: scale(0); opacity: 0;}
 }
 
 /* === ИИ-Подсказка: СВЕТЯЩАЯСЯ рамка === */
@@ -154,39 +175,18 @@ body.dark-mode .cell {
     border: 2px solid #ff9f43 !important;
 }
 
-/* Радужная Анимация исчезновения */
-.clearing {
-    animation: rainbow-fade 0.4s ease-in-out forwards;
-}
-
-@keyframes rainbow-fade {
-    0% { background-color: #ff0084; transform: scale(1); opacity: 1; }
-    50% { background-color: #3300ff; }
-    100% { background-color: #00ff00; transform: scale(0); opacity: 0; }
-}
-
 /* Панель Фигур */
-.next-blocks-panel {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background-color: #f8f8f8;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.3s, border-color 0.3s;
-}
-
-body.dark-mode .next-blocks-panel {
-    background-color: #34495e;
-    border-color: #5d6d7e;
-}
-
 #next-blocks {
     display: flex;
     justify-content: space-around;
     align-items: center; 
-    padding: 10px 0;
+    padding: 15px 0;
     min-height: 100px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f8f8f8;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
 }
 
 .shape-container {
@@ -213,7 +213,7 @@ body.dark-mode .next-blocks-panel {
 .shape-container.ai-target-2 { box-shadow: 0 0 0 3px #ff9f43; }
 
 .shape-container[draggable="true"]:hover {
-     box-shadow: 0 0 0 2px #6c5ce7;
+     box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 .shape {
@@ -227,215 +227,154 @@ body.dark-mode .next-blocks-panel {
     box-sizing: border-box;
 }
 
+/* Стили элементов управления */
+.game-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.game-controls button {
+    flex: 1 1 auto;
+    min-width: 100px;
+    font-weight: 600;
+}
+
+/* === Стили Модальных Окон Bootstrap === */
+.modal-content {
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    border-bottom: 2px solid #ddd;
+}
+
+.modal-title {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Стили для кнопок выбора режима */
+.mode-selection-button {
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.mode-selection-button:not(.active) {
+    background-color: #f8f8f8 !important;
+    color: var(--text-dark) !important;
+    border: 1px solid #ccc !important;
+}
+
+.mode-selection-button.active {
+    box-shadow: 0 0 10px rgba(74, 66, 245, 0.5);
+    border: 2px solid var(--primary-color) !important;
+}
+
+/* === Стили Профиля === */
+#profile-details p {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+#profile-details p span {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* === ТЕМНАЯ ТЕМА === */
+body.dark-mode {
+    color: var(--text-light);
+    background: linear-gradient(-45deg, #1e1e2f, #3a3a5a, #1e1e2f, #3a3a5a);
+    background-size: 400% 400%;
+    animation: background-animation 20s ease infinite;
+}
+
+body.dark-mode .app-container {
+    background-color: var(--bg-dark);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+}
+
+body.dark-mode h1 {
+    color: #ffeaa7; /* Ярко-желтый */
+}
+
+body.dark-mode .score-box {
+    background-color: #3a5068;
+}
+
+body.dark-mode .score-box .label {
+    color: var(--text-light);
+}
+
+body.dark-mode .score-box span:not(.label) {
+    color: var(--secondary-color);
+}
+
+body.dark-mode .score-box.high-score span:not(.label) {
+    color: #ffeaa7;
+}
+
+body.dark-mode #mode-info, body.dark-mode #ai-hint-message {
+    color: var(--text-light);
+}
+
+body.dark-mode #game-board {
+    background-color: var(--board-dark);
+    border-color: var(--secondary-color);
+}
+
+body.dark-mode .cell {
+    border: 1px solid #7f8c8d;
+}
+
 body.dark-mode .block {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* === ГРАДИЕНТНЫЕ КНОПКИ === */
-.game-button {
-    padding: 10px 10px;
-    flex-grow: 1;
-    font-size: 1em;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px; 
-    font-weight: 600;
-    transition: all 0.2s;
-    color: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    background-size: 200% auto;
-}
-
-.game-button:hover {
-    background-position: right center;
-}
-
-.game-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.button-primary {
-    background-image: linear-gradient(to right, #4a42f5 0%, #6c5ce7 100%);
-}
-
-.button-secondary {
-    background-image: linear-gradient(to right, #2ecc71 0%, #27ae60 100%);
-}
-
-.button-danger {
-    background-image: linear-gradient(to right, #e74c3c 0%, #c0392b 100%);
-}
-
-.button-settings {
-    background-image: linear-gradient(to right, #f39c12 0%, #d35400 100%);
-}
-
-/* Модальные окна */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 10;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    position: relative;
-    color: #333;
-    text-align: left;
+body.dark-mode #next-blocks {
+    background-color: var(--board-dark);
+    border-color: #5d6d7e;
 }
 
 body.dark-mode .modal-content {
-    background-color: #34495e;
-    color: #ecf0f1;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
 }
 
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    transition: color 0.2s;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #e74c3c;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    color: #4a42f5;
-}
-
-body.dark-mode .modal-content h2 {
-    color: #2ecc71;
+body.dark-mode .modal-header {
     border-bottom: 2px solid #5d6d7e;
 }
 
-/* Стили формы */
-.auth-form input[type="email"], 
-.auth-form input[type="password"],
-.edit-profile-form input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0 15px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 1em;
-}
-
-body.dark-mode .auth-form input,
-body.dark-mode .edit-profile-form input {
-    background-color: #2c3e50;
-    border: 1px solid #5d6d7e;
-    color: #ecf0f1;
-}
-
-.auth-form button, 
-.edit-profile-form button {
-    margin-top: 10px;
-}
-
-/* Стили таблицы лидеров */
-#leaderboard-list {
-    list-style: none;
-    padding: 0;
-}
-
-#leaderboard-list li {
-    padding: 10px 0;
-    border-bottom: 1px dashed #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-body.dark-mode #leaderboard-list li {
-    border-bottom: 1px dashed #5d6d7e;
-}
-
-#leaderboard-list li:last-child {
-    border-bottom: none;
-}
-
-#leaderboard-list li strong {
-    color: #ff9f43;
-    min-width: 30px;
-    text-align: center;
-}
-
-#leaderboard-list li span {
-    font-weight: 600;
-    color: #6c5ce7;
-}
-
-body.dark-mode #leaderboard-list li span {
-    color: #2ecc71;
-}
-
-/* Стили выбора режима */
-.mode-selection-button {
-    display: block;
-    padding: 15px;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-    text-align: left;
-    border: 2px solid transparent;
-    background-color: #ecf0f1;
-    color: #333;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    background-image: linear-gradient(to right, #ffeaa7 0%, #fdcb6e 100%);
-    background-size: 200% auto;
-    color: #333;
-}
-
-.mode-selection-button.active {
-    border-color: #6c5ce7;
-    background-image: linear-gradient(to right, #a29bfe 0%, #6c5ce7 100%);
-    color: white;
-    box-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+body.dark-mode .modal-title {
+    color: var(--secondary-color);
 }
 
 body.dark-mode .mode-selection-button:not(.active) {
-    background-image: linear-gradient(to right, #5d6d7e 0%, #4a5d6e 100%);
-    color: #ecf0f1;
+    background-color: #34495e !important;
+    color: var(--text-light) !important;
+    border: 1px solid #5d6d7e !important;
 }
 
-/* === КРЕДИТЫ / КОПИРАЙТА === */
-.sanwec-credit {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.2em;
-    text-align: center;
-    margin-top: 30px;
-    background: linear-gradient(45deg, #ff0084, #3300ff, #00ff00, #ff0084);
-    background-size: 400% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: text-flow 4s linear infinite;
+body.dark-mode .mode-selection-button.active {
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+    border: 2px solid var(--secondary-color) !important;
 }
-@keyframes text-flow {
-    to { background-position: 400% center; }
+
+body.dark-mode #profile-details p span {
+    color: var(--secondary-color);
+}
+
+body.dark-mode .list-group-item {
+    background-color: #3a5068;
+    color: var(--text-light);
+    border-color: #5d6d7e;
+}
+
+/* Аватар в темной теме */
+body.dark-mode #profile-avatar {
+    border: 3px solid var(--secondary-color) !important;
 }
