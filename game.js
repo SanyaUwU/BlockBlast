@@ -12,6 +12,8 @@ const AI_OCCUPIED_PENALTY = 10; // Увеличен для предотвращ�
 
 // --- СОХРАНЕНИЕ СЕССИИ ---
 const SESSION_KEY = 'blockBlastSession';
+const HISTORY_KEY = 'gameHistory'; 
+const MAX_HISTORY_GAMES = 3;
 
 // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ (Game) ---
 let board = [];
@@ -25,10 +27,12 @@ let comboCount = 0;
 let hasClearedInCurrentSet = false; 
 let currentBestPlacements = []; 
 let isClearing = false; 
+let totalLinesCleared = 0; // Переменная для отслеживания общего количества очищенных линий
 
 // Делаем переменные глобально доступными для auth.js
 window.highScore = highScore;
 window.updateHighScore = null; 
+window.updateGameHistory = null; 
 
 // --- DOM ЭЛЕМЕНТЫ (Game) ---
 const gameBoardElement = document.getElementById('game-board');
@@ -42,7 +46,6 @@ const modeButton = document.getElementById('mode-button');
 const modeModal = document.getElementById('mode-modal');
 const modeSelectionButtons = document.querySelectorAll('.mode-selection-button');
 const themeToggleButton = document.getElementById('theme-toggle-button');
-// Элемент для сообщения ИИ (используется для скрытия текста)
 const aiHintMessageElement = document.getElementById('ai-hint-message');
 
 // --- ФИГУРЫ ---
@@ -72,7 +75,7 @@ function updateModeInfo(mode) {
     if (mode === TRAINING_MODE) {
         modeInfoElement.textContent = "Режим: Тренировка (ИИ)"; 
         aiHintMessageElement.style.opacity = 1;
-        aiHintMessageElement.textContent = ''; // Убран весь текст
+        aiHintMessageElement.textContent = ''; 
         if (currentShapes.some(s => s !== null)) {
             calculateBestMoves(); 
             highlightAIBestMoves();
@@ -94,6 +97,7 @@ function initializeGame(mode) {
     gameMode = mode;
     currentBestPlacements = [];
     isClearing = false;
+    totalLinesCleared = 0; // Сброс
     
     scoreValueElement.textContent = score;
     comboDisplay.style.opacity = 0;
@@ -113,7 +117,8 @@ function saveGameSession() {
         comboCount: comboCount,
         hasClearedInCurrentSet: hasClearedInCurrentSet, 
         gameMode: gameMode,
-        currentShapes: currentShapes.map(s => s ? { ...s, pattern: s.pattern.map(row => [...row]) } : null) 
+        currentShapes: currentShapes.map(s => s ? { ...s, pattern: s.pattern.map(row => [...row]) } : null),
+        totalLinesCleared: totalLinesCleared // Сохраняем линии
     };
     
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
@@ -137,6 +142,7 @@ function loadGameSession() {
         comboCount = sessionData.comboCount;
         hasClearedInCurrentSet = sessionData.hasClearedInCurrentSet || false; 
         gameMode = sessionData.gameMode;
+        totalLinesCleared = sessionData.totalLinesCleared || 0; // Загружаем линии
         
         currentShapes = sessionData.currentShapes.map(savedShape => {
             if (!savedShape) return null;
@@ -158,6 +164,33 @@ function loadGameSession() {
         console.error("Ошибка при загрузке сессии:", e);
         clearGameSession(); 
         return false;
+    }
+}
+
+function saveGameHistory() {
+    const historyEntry = {
+        score: score,
+        mode: gameMode === NORMAL_MODE ? 'Обычный' : 'Тренировка (ИИ)',
+        lines: totalLinesCleared,
+        date: new Date().toISOString()
+    };
+
+    // Получаем текущую историю из LocalStorage
+    let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    
+    // Добавляем новую запись
+    history.unshift(historyEntry); 
+    
+    // Обрезаем до MAX_HISTORY_GAMES
+    if (history.length > MAX_HISTORY_GAMES) {
+        history = history.slice(0, MAX_HISTORY_GAMES);
+    }
+    
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+
+    // Если auth.js установлен, обновляем историю в Firebase
+    if (window.updateGameHistory && window.currentUser) {
+        window.updateGameHistory(history);
     }
 }
 
@@ -252,7 +285,6 @@ function canPlaceShape(pattern, startRow, startCol, currentBoard = board) {
                 if (boardR < 0 || boardR >= BOARD_SIZE || boardC < 0 || boardC >= BOARD_SIZE) {
                     return false;
                 }
-                // *** Ключевая проверка на занятость ***
                 if (currentBoard[boardR][boardC] !== EMPTY_COLOR) {
                     return false; 
                 }
@@ -287,7 +319,7 @@ function placeShape(shapeData, startRow, startCol) {
     // 3. Помечаем фигуру как использованную
     currentShapes[draggedShapeIndex] = null;
     
-    // 4. Обновляем отображение доски (для отображения поставленной фигуры)
+    // 4. Обновляем отображение доски 
     drawBoard();
     
     // 5. НЕМЕДЛЕННАЯ ОЧИСТКА
@@ -297,20 +329,16 @@ function placeShape(shapeData, startRow, startCol) {
     const isSetComplete = (remainingShapesCount === 0);
 
     if (isSetComplete) {
-        // Конец набора из 3-х фигур
         
         if (!hasClearedInCurrentSet) {
-             // Если очистки не было за весь набор, сбрасываем комбо
              comboCount = 0;
              comboDisplay.style.opacity = 0;
         }
         
-        hasClearedInCurrentSet = false; // Сбрасываем флаг для нового набора
+        hasClearedInCurrentSet = false; 
         generateNextShapes(); 
     } 
     
-    // Если очистка началась, renderNextBlocks и checkGameOver будут вызваны после анимации.
-    // Иначе - вызываем сейчас для обновления подсказки ИИ и проверки Game Over.
     if (!clearAnimationStarted) {
         if (gameMode === TRAINING_MODE) {
             calculateBestMoves();
@@ -369,11 +397,11 @@ function executeClearsAndScoring() {
         
         hasClearedInCurrentSet = true; 
         
-        // ЛОГИКА КОМБО: Успешная очистка увеличивает комбо
+        totalLinesCleared += clearedLines; 
+        
         comboCount++; 
         
         let baseScore = cellsToClear.size * 10; 
-        // Бонус зависит от накопительного comboCount
         let bonusScore = baseScore + (clearedLines * comboCount * 100); 
         
         comboDisplay.textContent = comboCount > 1 
@@ -404,7 +432,6 @@ function executeClearsAndScoring() {
             drawBoard(); 
             isClearing = false;
             
-            // После очистки обновляем подсказку ИИ/блоки и проверяем Game Over
             if (gameMode === TRAINING_MODE) {
                 calculateBestMoves();
             }
@@ -446,25 +473,28 @@ function checkGameOver() {
 }
 
 function endGame() {
-    // === ИСПРАВЛЕНИЕ: Обновляем рекорд ТОЛЬКО в Обычном режиме ===
+    // 1. Сохраняем историю игры
+    saveGameHistory();
+
+    // 2. Обновляем рекорд ТОЛЬКО в Обычном режиме 
     if (gameMode === NORMAL_MODE) {
         if (score > window.highScore) {
             window.highScore = score;
             highScoreValueElement.textContent = window.highScore;
             
-            // Сохранение рекорда (если функция доступна и пользователь залогинен)
+            // Сохранение рекорда
             if (typeof window.updateHighScore === 'function' && window.currentUser) {
                 window.updateHighScore(window.highScore);
             }
         }
     }
-    // ==========================================================
     
     setTimeout(() => {
         let message = `Игра окончена! Ваш финальный счет: ${score}`;
         if (gameMode === TRAINING_MODE) {
             message += ' (Рекорд не засчитан в режиме Тренировки)';
         }
+        message += `\nОчищено линий: ${totalLinesCleared}`; 
         
         alert(message);
         initializeGame(gameMode); 
@@ -476,42 +506,33 @@ function endGame() {
 function calculateHeuristicScore(boardState, shapeData, startRow, startCol) {
     const pattern = shapeData.pattern;
     
-    // Убеждаемся, что ход вообще возможен
     if (!canPlaceShape(pattern, startRow, startCol, boardState)) { 
-         return -Infinity; // Нелегальный ход
+         return -Infinity; 
     }
     
     let tempCells = boardState.map(row => [...row]); 
 
-    // Временное размещение фигуры
     for (let r = 0; r < pattern.length; r++) {
         for (let c = 0; c < pattern[0].length; c++) {
             if (pattern[r][c] === 1) {
-                // Используем 'temp' для ячеек, чтобы отличить их от 'EMPTY_COLOR'
                 tempCells[startRow + r][startCol + c] = 'temp'; 
             }
         }
     }
 
-    // ИИ оценивает потенциальную очистку
     const { clearedLines } = checkClears(tempCells); 
 
     let score = 0;
     
-    // 1. Очки за потенциальные линии (очень высокий приоритет)
     if (clearedLines > 0) {
-        // Применяем квадрат очищенных линий для предпочтения мульти-очисток
         score += clearedLines * clearedLines * AI_COMBO_WEIGHT; 
     }
     
-    // 2. Очки за размер фигуры (базовый скоринг)
     score += shapeData.size;
     
-    // 3. Штраф за заполненность доски (по-прежнему важен, чтобы не блокировать)
     let occupiedCells = 0;
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
-            // Считаем все заполненные ячейки, кроме тех, что должны быть очищены
             if (tempCells[r][c] !== EMPTY_COLOR) {
                 occupiedCells++;
             }
@@ -615,7 +636,6 @@ function highlightAIBestMoves() {
         }
     });
     
-    // Убираем весь текст
     if (aiHintMessageElement) {
         aiHintMessageElement.textContent = ''; 
     }
