@@ -274,6 +274,16 @@ h1 {
 }
 
 /* === Стили Профиля === */
+
+/* ИЗМЕНЕНИЕ: Убеждаемся, что аватар строго круглый и имеет правильные размеры */
+#profile-avatar {
+    width: 100px; 
+    height: 100px; 
+    border-radius: 50% !important; /* Делаем круглым */
+    object-fit: cover; 
+    border: 3px solid var(--primary-color);
+}
+
 #profile-details p {
     font-size: 1.1em;
     margin-bottom: 5px;
