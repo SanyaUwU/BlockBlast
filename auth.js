@@ -11,16 +11,14 @@
         measurementId: "G-ZKCKX6NBKZ"
     };
 
-    // --- КОНСТАНТЫ ---
-    // Эта константа теперь видна ТОЛЬКО внутри этой функции.
+    // --- КОНСТАНТЫ (ИЗОЛИРОВАНЫ) ---
     const HISTORY_KEY = 'gameHistory'; 
 
     // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ (Auth) ---
     let currentUser = null;
     let currentProfileUserId = null; 
 
-    // --- DOM ЭЛЕМЕНТЫ (Auth) ---
-    // ... (Остальные DOM элементы)
+    // --- DOM ЭЛЕМЕНТЫ ---
     const authButton = document.getElementById('auth-button'); 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -42,12 +40,14 @@
     const profileMessage = document.getElementById('profile-message');
     const cancelEditButton = document.getElementById('cancel-edit-button');
 
+    // Элементы Аватара и Истории
     const profileAvatarImg = document.getElementById('profile-avatar');
     const avatarUploadInput = document.getElementById('avatar-upload-input');
     const avatarStatusMessage = document.getElementById('avatar-status-message');
     const gameHistoryList = document.getElementById('game-history-list');
 
-    // Инициализируем Firebase и делаем объекты доступными
+
+    // Инициализируем Firebase
     if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     } else if (typeof firebase === 'undefined') {
@@ -55,10 +55,10 @@
     }
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
+    // Storage нужен для аватаров
+    const storage = firebase.storage(); 
 
     // Делаем переменные глобально доступными для game.js
-    // window.currentUser используется в game.js для проверки, авторизован ли пользователь.
     window.currentUser = currentUser;
 
     /**
@@ -73,7 +73,10 @@
         return modalInstance;
     }
 
-
+    /**
+     * Обновляет рекорд в Firestore. Вызывается из game.js.
+     * @param {number} newScore Новый рекорд.
+     */
     window.updateHighScore = async function(newScore) {
         if (!currentUser) return;
         try {
@@ -86,13 +89,19 @@
         }
     }
 
+    /**
+     * Обновляет историю игр в Firestore. Вызывается из game.js.
+     * @param {Array<Object>} historyData Обновленный массив истории.
+     */
     window.updateGameHistory = async (historyData) => {
         if (!currentUser) return;
         try {
+            // Ограничиваем историю до 5 записей
+            const limitedHistory = historyData.slice(0, 5); 
             await db.collection('users').doc(currentUser.uid).set({
-                gameHistory: historyData
+                gameHistory: limitedHistory
             }, { merge: true });
-            loadGameHistory(historyData); 
+            loadGameHistory(limitedHistory); 
         } catch (error) {
             console.error("Ошибка при обновлении истории игр:", error);
         }
@@ -145,6 +154,7 @@
     function loadGameHistory(history) {
         if (!gameHistoryList) return; 
 
+        // Если история передана из Firebase, используем ее. Иначе читаем из LocalStorage (для неавторизованных)
         const games = history || JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
         
         gameHistoryList.innerHTML = '';
@@ -175,7 +185,7 @@
     }
 
     // ====================================================================
-    // ЛОГИКА ПРОФИЛЯ (Отображение/Редактирование)
+    // ЛОГИКА ПРОФИЛЯ
     // ====================================================================
 
     async function fetchProfile(userId) {
@@ -185,6 +195,7 @@
             let data = doc.exists ? doc.data() : null;
 
             if (!data) {
+                // Если профиль не существует, создаем его, мигрируя локальную историю
                 const initialData = {
                     highScore: window.highScore || 0,
                     email: currentUser.email,
@@ -194,7 +205,7 @@
                 };
                 await db.collection("users").doc(userId).set(initialData);
                 data = initialData;
-                localStorage.removeItem(HISTORY_KEY);
+                localStorage.removeItem(HISTORY_KEY); 
             }
 
             if (highScoreValueElement) {
@@ -203,13 +214,8 @@
             }
 
             const nickname = data.nickname || (data.email ? data.email.split('@')[0] : 'Anon');
-            if (profileNicknameElement) profileNicknameElement.textContent = `Никнейм: ${nickname}`;
-            if (profileEmailElement) profileEmailElement.textContent = `Email: ${data.email || 'Нет'}`;
-            if (profileHighScoreElement) profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
-            
             if (profileAvatarImg) profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
-            loadGameHistory(data.gameHistory);
-
+            
         } catch (error) {
             console.error("Ошибка загрузки профиля:", error);
         }
@@ -312,7 +318,8 @@
                 nickname: newNickname,
                 highScore: data.highScore || 0, 
                 email: currentUser.email,
-                avatarURL: data.avatarURL || null
+                avatarURL: data.avatarURL || null,
+                gameHistory: data.gameHistory || [],
             }, { merge: true }); 
 
             await currentUser.updateProfile({
@@ -389,7 +396,7 @@
     }
 
     // ====================================================================
-    // ЛОГИКА АУТЕНТИФИКАЦИИ (Вход/Регистрация/Выход)
+    // ЛОГИКА АУТЕНТИФИКАЦИИ
     // ====================================================================
 
     function handleAuthToggle() {
@@ -427,6 +434,7 @@
                     displayName: nickname
                 });
                 
+                // Создаем профиль, мигрируя локальную историю
                 await db.collection("users").doc(user.uid).set({
                     highScore: window.highScore || 0,
                     email: email,
@@ -471,11 +479,14 @@
         } else {
             if (authButton) authButton.textContent = 'Вход/Регистрация';
             
+            // Если пользователь вышел, но есть локальный рекорд, сохраняем его
             const localHighScore = window.highScore || 0;
             if (highScoreValueElement) {
                 window.highScore = localHighScore;
                 highScoreValueElement.textContent = localHighScore;
             }
+            // Также загружаем локальную историю для отображения
+            loadGameHistory();
         }
     });
 
@@ -483,12 +494,10 @@
     // --- ИНИЦИАЛИЗАЦИЯ AUTH ЛОГИКИ ---
     document.addEventListener('DOMContentLoaded', () => {
         
-        // Обработчики аутентификации
         if (authToggleButton) authToggleButton.onclick = handleAuthToggle;
         if (authForm) authForm.onsubmit = handleAuthFormSubmit;
         if (logoutButton) logoutButton.onclick = handleLogout;
         
-        // Обработчики профиля
         if (editProfileButton) {
             editProfileButton.onclick = () => {
                 if (editProfileButton) editProfileButton.style.display = 'none';
@@ -530,4 +539,4 @@
         }
     });
 
-})(); // Конец IIFE
+})();
