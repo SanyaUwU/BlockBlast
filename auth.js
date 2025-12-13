@@ -17,11 +17,10 @@ const HISTORY_KEY = 'gameHistory';
 // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ (Auth) ---
 let currentUser = null;
 let currentProfileUserId = null; 
-let profileModalInstance = null; // Для управления модальным окном Bootstrap
 
 // --- DOM ЭЛЕМЕНТЫ (Auth) ---
-const authButton = document.getElementById('auth-button'); // Предполагаем, что это кнопка "Профиль"
-const authModal = document.getElementById('auth-modal'); // Модальное окно Входа/Регистрации
+const authButton = document.getElementById('auth-button'); 
+const authModal = document.getElementById('auth-modal');
 const authForm = document.getElementById('auth-form');
 const authMessage = document.getElementById('auth-message');
 const authToggleButton = document.getElementById('auth-toggle-button');
@@ -41,14 +40,10 @@ const editNicknameInput = document.getElementById('edit-nickname-input');
 const profileMessage = document.getElementById('profile-message');
 const cancelEditButton = document.getElementById('cancel-edit-button');
 
-// Новые элементы для аватара и истории
 const profileAvatarImg = document.getElementById('profile-avatar');
 const avatarUploadInput = document.getElementById('avatar-upload-input');
-const avatarStatusMessage = document.getElementById('avatar-status-message');
-const gameHistoryList = document.getElementById('game-history-list');
-
-// Все кнопки закрытия модальных окон (Bootstrap-only)
-// const closeButtons = document.querySelectorAll('.btn-close'); 
+const avatarStatusMessage = document.getElementById('avatar-status-message'); // <-- ЭТОТ ЭЛЕМЕНТ ТЕПЕРЬ СУЩЕСТВУЕТ
+const gameHistoryList = document.getElementById('game-history-list'); // <-- ЭТОТ ЭЛЕМЕНТ ТЕПЕРЬ СУЩЕСТВУЕТ
 
 
 // --- ФУНКЦИИ FIREBASE (АУТЕНТИФИКАЦИЯ, СЧЕТ) ---
@@ -67,9 +62,18 @@ const storage = firebase.storage();
 window.currentUser = currentUser;
 
 /**
- * Обновляет рекорд в Firestore. Вызывается из game.js.
- * @param {number} newScore Новый рекорд.
+ * Вспомогательная функция для управления модальными окнами Bootstrap
  */
+function getBootstrapModalInstance(element) {
+    if (!element) return null;
+    let modalInstance = bootstrap.Modal.getInstance(element);
+    if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(element);
+    }
+    return modalInstance;
+}
+
+
 window.updateHighScore = async function(newScore) {
     if (!currentUser) return;
     try {
@@ -82,10 +86,6 @@ window.updateHighScore = async function(newScore) {
     }
 }
 
-/**
- * Обновляет историю игр в Firestore. Вызывается из game.js.
- * @param {Array<Object>} historyData Массив последних игр.
- */
 window.updateGameHistory = async (historyData) => {
     if (!currentUser) return;
     try {
@@ -105,9 +105,8 @@ window.updateGameHistory = async (historyData) => {
 const uploadAvatar = (file) => {
     if (!currentUser || !file) return;
 
-    if (avatarStatusMessage) avatarStatusMessage.textContent = 'Загрузка...';
+    if (avatarStatusMessage) avatarStatusMessage.textContent = 'Загрузка...'; // <-- ИСПРАВЛЕНО
     
-    // Имя файла: UID пользователя + расширение
     const fileExtension = file.name.split('.').pop();
     const fileName = `${currentUser.uid}.${fileExtension}`;
     const storageRefPath = storage.ref(`avatars/${currentUser.uid}/${fileName}`);
@@ -123,15 +122,12 @@ const uploadAvatar = (file) => {
             if (avatarStatusMessage) avatarStatusMessage.textContent = `Ошибка: ${error.message}`;
         }, 
         () => {
-            // Успешное завершение
             uploadTask.snapshot.ref.getDownloadURL().then(async (downloadURL) => {
                 
-                // 1. Сохраняем URL в Firestore
                 await db.collection("users").doc(currentUser.uid).set({
                     avatarURL: downloadURL
                 }, { merge: true });
 
-                // 2. Обновляем UI
                 if (profileAvatarImg) profileAvatarImg.src = downloadURL;
                 if (avatarStatusMessage) avatarStatusMessage.textContent = 'Аватар обновлен!';
                 setTimeout(() => { if (avatarStatusMessage) avatarStatusMessage.textContent = ''; }, 3000);
@@ -142,7 +138,6 @@ const uploadAvatar = (file) => {
     );
 };
 
-
 // ====================================================================
 // ЛОГИКА ИСТОРИИ ИГР
 // ====================================================================
@@ -150,7 +145,6 @@ const uploadAvatar = (file) => {
 function loadGameHistory(history) {
     if (!gameHistoryList) return; 
 
-    // Используем переданную историю или LocalStorage
     const games = history || JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
     
     gameHistoryList.innerHTML = '';
@@ -191,36 +185,29 @@ async function fetchProfile(userId) {
         let data = doc.exists ? doc.data() : null;
 
         if (!data) {
-            // Создание базового профиля
             const initialData = {
-                highScore: 0,
+                highScore: window.highScore || 0,
                 email: currentUser.email,
                 nickname: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Anon'),
                 avatarURL: null,
-                gameHistory: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') // Миграция локальной истории
+                gameHistory: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
             };
             await db.collection("users").doc(userId).set(initialData);
             data = initialData;
+            localStorage.removeItem(HISTORY_KEY); // Очищаем локальную историю после миграции
         }
 
-        // Обновляем highScore в game.js и UI
         if (highScoreValueElement) {
             window.highScore = data.highScore || 0;
             highScoreValueElement.textContent = window.highScore;
         }
 
-        // Обновляем UI профиля
         const nickname = data.nickname || (data.email ? data.email.split('@')[0] : 'Anon');
-        profileNicknameElement.textContent = `Никнейм: ${nickname}`;
-        profileEmailElement.textContent = `Email: ${data.email || 'Нет'}`;
-        profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
+        if (profileNicknameElement) profileNicknameElement.textContent = `Никнейм: ${nickname}`;
+        if (profileEmailElement) profileEmailElement.textContent = `Email: ${data.email || 'Нет'}`;
+        if (profileHighScoreElement) profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
         
-        // Обновляем Аватар
-        if (profileAvatarImg) {
-            profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
-        }
-
-        // Обновляем Историю
+        if (profileAvatarImg) profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
         loadGameHistory(data.gameHistory);
 
     } catch (error) {
@@ -230,18 +217,17 @@ async function fetchProfile(userId) {
 
 async function showProfileModal(userId) {
     currentProfileUserId = userId;
-    profileMessage.textContent = 'Загрузка данных...';
+    if (profileMessage) profileMessage.textContent = 'Загрузка данных...';
     
-    // Скрываем форму редактирования и показываем кнопку
-    editProfileButton.style.display = 'none';
-    editProfileForm.style.display = 'none';
+    // Используем Bootstrap JS для управления видимостью формы
+    if (editProfileButton) editProfileButton.style.display = 'none';
+    if (editProfileForm) editProfileForm.style.display = 'none';
 
     try {
         const doc = await db.collection("users").doc(userId).get();
         if (!doc.exists) {
-            profileMessage.textContent = 'Ошибка: Профиль не найден.';
-            // Используем Bootstrap JS для показа модального окна
-            if (profileModalInstance) profileModalInstance.show(); 
+            if (profileMessage) profileMessage.textContent = 'Ошибка: Профиль не найден.';
+            getBootstrapModalInstance(profileModal).show(); 
             return;
         }
         
@@ -250,53 +236,47 @@ async function showProfileModal(userId) {
 
         const nickname = data.nickname || (data.email ? data.email.split('@')[0] : 'Anon');
         
-        profileNicknameElement.textContent = `Никнейм: ${nickname}`;
-        profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
+        if (profileNicknameElement) profileNicknameElement.textContent = `Никнейм: ${nickname}`;
+        if (profileHighScoreElement) profileHighScoreElement.textContent = `Рекорд: ${data.highScore || 0} очков`;
         
-        // Условие отображения email
-        profileEmailElement.textContent = isCurrentUser 
-            ? `Email: ${data.email || 'Нет'}` 
-            : `Email: Скрыто`; 
-        
-        // Обновляем Аватар
-        if (profileAvatarImg) {
-            profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
+        if (profileEmailElement) {
+            profileEmailElement.textContent = isCurrentUser 
+                ? `Email: ${data.email || 'Нет'}` 
+                : `Email: Скрыто`; 
         }
-
-        // Обновляем Историю
+        
+        if (profileAvatarImg) profileAvatarImg.src = data.avatarURL || 'default_avatar.png';
         loadGameHistory(data.gameHistory);
 
         if (isCurrentUser) {
-            editProfileButton.style.display = 'block';
+            if (editProfileButton) editProfileButton.style.display = 'block';
         }
         
-        profileMessage.textContent = '';
-        // Используем Bootstrap JS для показа модального окна
-        if (profileModalInstance) profileModalInstance.show();
+        if (profileMessage) profileMessage.textContent = '';
+        getBootstrapModalInstance(profileModal).show();
 
     } catch (error) {
         console.error("Ошибка при отображении профиля:", error);
-        profileMessage.textContent = 'Ошибка загрузки профиля.';
-        if (profileModalInstance) profileModalInstance.show(); 
+        if (profileMessage) profileMessage.textContent = 'Ошибка загрузки профиля.';
+        getBootstrapModalInstance(profileModal).show(); 
     }
 }
 
 async function handleProfileEdit(event) {
     event.preventDefault();
-    profileMessage.textContent = 'Сохранение...';
+    if (profileMessage) profileMessage.textContent = 'Сохранение...';
 
     const newNickname = editNicknameInput.value.trim();
 
     if (!currentUser || currentUser.uid !== currentProfileUserId) {
-        profileMessage.textContent = 'Ошибка: Вы не можете редактировать этот профиль.';
+        if (profileMessage) profileMessage.textContent = 'Ошибка: Вы не можете редактировать этот профиль.';
         return;
     }
     if (newNickname.length < 3 || newNickname.length > 20) {
-        profileMessage.textContent = 'Ошибка: Никнейм должен быть от 3 до 20 символов.';
+        if (profileMessage) profileMessage.textContent = 'Ошибка: Никнейм должен быть от 3 до 20 символов.';
         return;
     }
     
-    // Проверка на уникальность никнейма (исключая текущего пользователя)
     try {
         const snapshot = await db.collection("users")
             .where("nickname", "==", newNickname)
@@ -306,13 +286,13 @@ async function handleProfileEdit(event) {
         if (!snapshot.empty) {
             const docId = snapshot.docs[0].id;
             if (docId !== currentUser.uid) {
-                profileMessage.textContent = 'Ошибка: Никнейм уже занят другим пользователем.';
+                if (profileMessage) profileMessage.textContent = 'Ошибка: Никнейм уже занят другим пользователем.';
                 return;
             }
         }
     } catch (error) {
         console.error("Ошибка проверки никнейма:", error);
-        profileMessage.textContent = 'Ошибка сервера при проверке никнейма.';
+        if (profileMessage) profileMessage.textContent = 'Ошибка сервера при проверке никнейма.';
         return;
     }
     
@@ -324,12 +304,11 @@ async function handleProfileEdit(event) {
         }
     } catch (error) {
         console.error("Ошибка получения текущих данных профиля:", error);
-        profileMessage.textContent = 'Ошибка при получении текущих данных профиля.';
+        if (profileMessage) profileMessage.textContent = 'Ошибка при получении текущих данных профиля.';
         return;
     }
 
     try {
-        // Обновляем Firestore
         await db.collection("users").doc(currentUser.uid).set({
             nickname: newNickname,
             highScore: data.highScore || 0, 
@@ -337,28 +316,26 @@ async function handleProfileEdit(event) {
             avatarURL: data.avatarURL || null
         }, { merge: true }); 
 
-        // Обновляем DisplayName в Firebase Auth
         await currentUser.updateProfile({
             displayName: newNickname
         });
 
-        // Обновляем UI
-        authButton.textContent = `Профиль (${newNickname})`;
-        profileNicknameElement.textContent = `Никнейм: ${newNickname}`;
-        profileMessage.textContent = 'Никнейм успешно обновлен!';
+        if (authButton) authButton.textContent = `Профиль (${newNickname})`;
+        if (profileNicknameElement) profileNicknameElement.textContent = `Никнейм: ${newNickname}`;
+        if (profileMessage) profileMessage.textContent = 'Никнейм успешно обновлен!';
         
         hideEditProfile();
-        loadLeaderboard(); // Перезагружаем Топ-10 для обновления никнейма
+        loadLeaderboard();
     } catch (error) {
         console.error("Ошибка сохранения профиля:", error);
-        profileMessage.textContent = `Ошибка сохранения: ${error.message}`;
+        if (profileMessage) profileMessage.textContent = `Ошибка сохранения: ${error.message}`;
     }
 }
 
 function hideEditProfile() {
-    editProfileButton.style.display = 'block';
-    editProfileForm.style.display = 'none';
-    profileMessage.textContent = '';
+    if (editProfileButton) editProfileButton.style.display = 'block';
+    if (editProfileForm) editProfileForm.style.display = 'none';
+    if (profileMessage) profileMessage.textContent = '';
 }
 
 // ====================================================================
@@ -366,18 +343,18 @@ function hideEditProfile() {
 // ====================================================================
 
 async function loadLeaderboard() {
-    leaderboardList.innerHTML = '<li class="list-group-item text-center">Загрузка...</li>';
+    if (leaderboardList) leaderboardList.innerHTML = '<li class="list-group-item text-center">Загрузка...</li>';
     try {
         const snapshot = await db.collection("users")
             .orderBy("highScore", "desc")
             .limit(10)
             .get();
         
-        leaderboardList.innerHTML = ''; 
+        if (leaderboardList) leaderboardList.innerHTML = ''; 
         let rank = 1;
         
         if (snapshot.empty) {
-            leaderboardList.innerHTML = '<li class="list-group-item text-center">Таблица лидеров пуста. Будьте первым!</li>';
+            if (leaderboardList) leaderboardList.innerHTML = '<li class="list-group-item text-center">Таблица лидеров пуста. Будьте первым!</li>';
         } else {
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -393,7 +370,7 @@ async function loadLeaderboard() {
                         <button class="btn btn-sm btn-outline-secondary view-profile-button" data-user-id="${doc.id}">Профиль</button>
                     </div>
                 `;
-                leaderboardList.appendChild(li);
+                if (leaderboardList) leaderboardList.appendChild(li);
                 rank++;
             });
             
@@ -401,30 +378,22 @@ async function loadLeaderboard() {
                 button.onclick = (e) => {
                     e.stopPropagation(); 
                     const userId = e.target.dataset.userId;
-                    // Предполагаем, что модальное окно Топ-10 закрывается Bootstrap JS
-                    const leaderboardModalElement = document.getElementById('leaderboard-modal');
-                    if (leaderboardModalElement) {
-                        const modal = bootstrap.Modal.getInstance(leaderboardModalElement);
-                        if (modal) modal.hide();
-                    }
+                    getBootstrapModalInstance(leaderboardModal).hide(); 
                     showProfileModal(userId); 
                 };
             });
         }
     } catch (error) {
         console.error("Ошибка загрузки таблицы лидеров:", error);
-        leaderboardList.innerHTML = '<li class="list-group-item text-danger text-center">Не удалось загрузить таблицу.</li>';
+        if (leaderboardList) leaderboardList.innerHTML = '<li class="list-group-item text-danger text-center">Не удалось загрузить таблицу.</li>';
     }
 }
-
 
 // ====================================================================
 // ЛОГИКА АУТЕНТИФИКАЦИИ (Вход/Регистрация/Выход)
 // ====================================================================
 
 function handleAuthToggle() {
-    // В вашем оригинальном коде логика переключения была обратной:
-    // Если на кнопке "Регистрация" -> переключаем на "Уже есть аккаунт? Вход" (т.е. режим входа)
     const loginButton = document.getElementById('auth-login-button');
     if (!loginButton) return;
 
@@ -443,7 +412,7 @@ function handleAuthToggle() {
 
 async function handleAuthFormSubmit(event) {
     event.preventDefault();
-    authMessage.textContent = '';
+    if (authMessage) authMessage.textContent = '';
 
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-password').value;
@@ -451,44 +420,37 @@ async function handleAuthFormSubmit(event) {
     
     try {
         if (isLoginMode) {
-            // ВХОД
             await auth.signInWithEmailAndPassword(email, password);
         } else {
-            // РЕГИСТРАЦИЯ
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             const nickname = email.split('@')[0];
             
-            // Обновляем DisplayName в Auth
             await user.updateProfile({
                 displayName: nickname
             });
             
-            // Создаем запись в Firestore, копируя текущий локальный рекорд
             await db.collection("users").doc(user.uid).set({
-                highScore: window.highScore || 0, // Используем локальный рекорд гостя
+                highScore: window.highScore || 0,
                 email: email,
                 nickname: nickname,
-                gameHistory: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') // Миграция локальной истории
+                gameHistory: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
             });
 
-            // Очищаем локальную историю после миграции (опционально, но рекомендуется)
             localStorage.removeItem(HISTORY_KEY);
             
-            authMessage.textContent = 'Регистрация прошла успешно!';
+            if (authMessage) authMessage.textContent = 'Регистрация прошла успешно!';
         }
-        // Вход/Регистрация успешны, модальное окно закроется через onAuthStateChanged
         
     } catch (error) {
         console.error("Ошибка аутентификации:", error);
-        authMessage.textContent = `Ошибка: ${error.message}`;
+        if (authMessage) authMessage.textContent = `Ошибка: ${error.message}`;
     }
 }
 
 function handleLogout() {
     auth.signOut();
-    // Bootstrap должен закрыть модальное окно профиля
-    if (profileModalInstance) profileModalInstance.hide();
+    getBootstrapModalInstance(profileModal).hide();
 }
 
 
@@ -498,28 +460,20 @@ function handleLogout() {
 
 auth.onAuthStateChanged(async (user) => {
     currentUser = user;
-    window.currentUser = user; // Обновляем глобальный
+    window.currentUser = user;
     const highScoreValueElement = document.getElementById('high-score-value');
     
     if (user) {
-        // Пользователь залогинен
         const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Anon');
-        authButton.textContent = `Профиль (${displayName})`;
+        if (authButton) authButton.textContent = `Профиль (${displayName})`;
         
-        // Получаем данные (рекорд, аватар, история)
         await fetchProfile(user.uid); 
+        
+        getBootstrapModalInstance(authModal).hide(); // Закрываем модальное окно входа
 
-        // Закрываем модальное окно входа, если оно открыто
-        if (authModal) {
-            const modal = bootstrap.Modal.getInstance(authModal);
-            if (modal) modal.hide();
-        }
-        
     } else {
-        // Пользователь - Гость
-        authButton.textContent = 'Вход/Регистрация';
+        if (authButton) authButton.textContent = 'Вход/Регистрация';
         
-        // Обновляем High Score в UI и в game.js, используя локальное значение
         const localHighScore = window.highScore || 0;
         if (highScoreValueElement) {
             window.highScore = localHighScore;
@@ -532,24 +486,19 @@ auth.onAuthStateChanged(async (user) => {
 // --- ИНИЦИАЛИЗАЦИЯ AUTH ЛОГИКИ ---
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Инициализация Bootstrap модальных окон
-    if (profileModal) {
-        profileModalInstance = new bootstrap.Modal(profileModal);
-    }
-    
-    // Обработчики аутентификации
-    if (authToggleButton) authToggleButton.onclick = handleAuthToggle;
-    if (authForm) authForm.onsubmit = handleAuthFormSubmit;
-    if (logoutButton) logoutButton.onclick = handleLogout;
+    // Обработчики аутентификации (УСЛОВНАЯ ПРОВЕРКА ИСПРАВЛЯЕТ ОШИБКИ NULL)
+    if (authToggleButton) authToggleButton.onclick = handleAuthToggle; // <-- ИСПРАВЛЕНО
+    if (authForm) authForm.onsubmit = handleAuthFormSubmit; 
+    if (logoutButton) logoutButton.onclick = handleLogout; // <-- ИСПРАВЛЕНО
     
     // Обработчики профиля
     if (editProfileButton) {
         editProfileButton.onclick = () => {
-            editProfileButton.style.display = 'none';
-            editProfileForm.style.display = 'block';
+            if (editProfileButton) editProfileButton.style.display = 'none';
+            if (editProfileForm) editProfileForm.style.display = 'block';
             const currentNicknameText = profileNicknameElement.textContent.replace('Никнейм:', '').trim();
-            editNicknameInput.value = currentNicknameText; 
-            profileMessage.textContent = '';
+            if (editNicknameInput) editNicknameInput.value = currentNicknameText; 
+            if (profileMessage) profileMessage.textContent = '';
         };
     }
     if (cancelEditButton) cancelEditButton.onclick = hideEditProfile;
@@ -568,14 +517,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authButton) {
         authButton.onclick = () => {
             if (currentUser) {
-                // Если залогинен, показываем профиль
                 showProfileModal(currentUser.uid); 
             } else {
-                // Если Гость, показываем модальное окно входа
-                if (authModal) {
-                    const modal = new bootstrap.Modal(authModal);
-                    modal.show();
-                }
+                getBootstrapModalInstance(authModal).show();
             }
         };
     }
@@ -584,12 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (leaderboardButton) {
         leaderboardButton.onclick = () => {
             loadLeaderboard();
-            // Предполагаем, что модальное окно Топ-10 показывается Bootstrap JS
-            const leaderboardModalElement = document.getElementById('leaderboard-modal');
-            if (leaderboardModalElement) {
-                const modal = new bootstrap.Modal(leaderboardModalElement);
-                modal.show();
-            }
+            getBootstrapModalInstance(leaderboardModal).show();
         };
     }
 });
